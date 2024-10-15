@@ -828,17 +828,25 @@ impl FromStr for Address<NetworkUnchecked> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Address<NetworkUnchecked>, ParseError> {
-        if let Ok((hrp, witness_version, data)) = bech32::segwit::decode(s) {
-            let version = WitnessVersion::try_from(witness_version.to_u8())?;
-            let program = WitnessProgram::new(version, &data)
-                .expect("bech32 guarantees valid program length for witness");
+        match bech32::segwit::decode(s) {
+            Ok((hrp, witness_version, data)) => {
+                let version = WitnessVersion::try_from(witness_version.to_u8())?;
+                let program = WitnessProgram::new(version, &data)
+                    .expect("bech32 guarantees valid program length for witness");
 
-            let hrp = KnownHrp::from_hrp(hrp)?;
-            let inner = AddressInner::Segwit { program, hrp };
-            return Ok(Address(inner, PhantomData));
+                let hrp = KnownHrp::from_hrp(hrp)?;
+                let inner = AddressInner::Segwit { program, hrp };
+                return Ok(Address(inner, PhantomData));
+            },
+            Err(e) => {
+                let bech32_prefix = ["bc1", "tb1", "bcrt1"];
+                if bech32_prefix.iter().any(|&prefix| s.starts_with(prefix)) {
+                    return Err(e.into());
+                }
+            }
         }
 
-        // If segwit decoding fails, assume its a legacy address.
+        // If segwit decoding fails, and `s` does not have a bech32 prefix assume it's a legacy address.
 
         if s.len() > 50 {
             return Err(LegacyAddressTooLongError { length: s.len() }.into());
@@ -913,6 +921,14 @@ mod tests {
             let back: Address<NetworkUnchecked> =
                 serde_json::from_str(&ser).expect("failed to deserialize address");
             assert_eq!(back.assume_checked(), *addr, "serde round-trip failed for {}", addr)
+        }
+    }
+
+    #[test]
+    fn test_bech32_bad_address() {
+        let result = Address::from_str("bc1qzvkjn4q3nszqxrv3nraga2r822xjty3ykvkuw");
+        if let Err(e) = result {
+            assert_eq!(e.to_string(), "bech32 segwit decoding error");
         }
     }
 
