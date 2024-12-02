@@ -872,7 +872,6 @@ fn serde_as_str_opt() {
     // Test Roundtripping
     for s in [&with, &without].iter() {
         let v = serde_json::to_string(s).unwrap();
-        std::println!("v: {}", v);
         let w: T = serde_json::from_str(&v).unwrap();
         assert_eq!(w, **s);
     }
