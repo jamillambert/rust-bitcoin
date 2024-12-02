@@ -5,6 +5,7 @@ on:   # yamllint disable-line rule:truthy
       - master
       - 'test-ci/**'
   pull_request:
+  workflow_dispatch:
 
 name: Continuous integration
 
