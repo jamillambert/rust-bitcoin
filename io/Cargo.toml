@@ -17,6 +17,7 @@ exclude = ["tests", "contrib"]
 default = ["std"]
 std = ["alloc", "hashes?/std"]
 alloc = ["hashes?/alloc"]
+hex = ["hashes?/hex"]
 
 [dependencies]
 internals = { package = "bitcoin-internals", version = "0.4.0" }
