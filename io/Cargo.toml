@@ -15,13 +15,14 @@ exclude = ["tests", "contrib"]
 
 [features]
 default = ["std"]
-std = ["alloc", "hashes?/std"]
-alloc = ["hashes?/alloc"]
+std = ["alloc", "hashes?/std", "hex?/std"]
+alloc = ["hashes?/alloc", "hex?/alloc"]
 
 [dependencies]
 internals = { package = "bitcoin-internals", version = "0.4.0" }
 
 hashes = { package = "bitcoin_hashes", version = "0.16.0", default-features = false, optional = true }
+hex = { package = "hex-conservative", version = "0.3.0", default-features = false, optional = true }
 
 [package.metadata.docs.rs]
 all-features = true
