@@ -95,7 +95,6 @@ mod tests {
 }
 
 #[cfg(bench)]
-#[cfg(feature = "hex")]
 mod benches {
     use test::Bencher;
 

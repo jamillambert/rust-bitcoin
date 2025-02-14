@@ -169,7 +169,6 @@ mod sealed {
 
 #[cfg(test)]
 #[cfg(feature = "alloc")]
-#[cfg(feature = "hex")]
 mod tests {
     use alloc::format;
 
