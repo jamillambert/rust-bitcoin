@@ -53,5 +53,6 @@ hashes::impl_hex_for_newtype!(TapTweakHash);
 hashes::impl_serde_for_newtype!(TapTweakHash);
 
 impl From<TapLeafHash> for TapNodeHash {
+    #[inline]
     fn from(leaf: TapLeafHash) -> TapNodeHash { TapNodeHash::from_byte_array(leaf.to_byte_array()) }
 }
