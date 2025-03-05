@@ -340,8 +340,6 @@ impl<'de> serde::Deserialize<'de> for Witness {
     where
         D: serde::Deserializer<'de>,
     {
-        use crate::prelude::String;
-
         struct Visitor; // Human-readable visitor.
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = Witness;
