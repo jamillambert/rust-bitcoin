@@ -11,7 +11,7 @@ pub trait SliceExt {
     ///
     /// ```compile_fail
     /// let slice = [1, 2, 3];
-    /// let fail = slice.as_chunks::<0>();
+    /// let _fail = slice.as_chunks::<0>();
     /// ```
     fn bitcoin_as_chunks<const N: usize>(&self) -> (&[[Self::Item; N]], &[Self::Item]);
 
@@ -21,7 +21,7 @@ pub trait SliceExt {
     ///
     /// ```compile_fail
     /// let mut slice = [1, 2, 3];
-    /// let fail = slice.as_chunks_mut::<0>();
+    /// let _fail = slice.as_chunks_mut::<0>();
     /// ```
     fn bitcoin_as_chunks_mut<const N: usize>(
         &mut self,
