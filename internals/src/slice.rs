@@ -9,7 +9,8 @@ pub trait SliceExt {
     ///
     /// Note that `N` must not be zero:
     ///
-    /// ```compile_fail
+    /// ```should_panic
+    /// # #![feature(slice_as_chunks)]
     /// let slice = [1, 2, 3];
     /// let _fail = slice.as_chunks::<0>();
     /// ```
@@ -19,7 +20,8 @@ pub trait SliceExt {
     ///
     /// Note that `N` must not be zero:
     ///
-    /// ```compile_fail
+    /// ```should_panic
+    /// # #![feature(slice_as_chunks)]
     /// let mut slice = [1, 2, 3];
     /// let _fail = slice.as_chunks_mut::<0>();
     /// ```
