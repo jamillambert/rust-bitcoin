@@ -384,11 +384,20 @@ mod tests {
     }
 
     #[test]
-    fn raw_feerate() {
-        let fee_rate = FeeRate::from_sat_per_kwu(749);
-        assert_eq!(fee_rate.to_sat_per_kwu_floor(), 749);
-        assert_eq!(fee_rate.to_sat_per_vb_floor(), 2);
-        assert_eq!(fee_rate.to_sat_per_vb_ceil(), 3);
+    fn fee_rate_to_sat_per_x() {
+        let fee_rate = FeeRate::from_sat_per_mvb(1_002_200);
+
+        // sat/kwu: 1_002_200 / 4_000 = 250.55
+        assert_eq!(fee_rate.to_sat_per_kwu_floor(), 250);
+        assert_eq!(fee_rate.to_sat_per_kwu_ceil(), 251);
+
+        // sat/vB: 1_002_200 / 1_000_000 = 1.0022
+        assert_eq!(fee_rate.to_sat_per_vb_floor(), 1);
+        assert_eq!(fee_rate.to_sat_per_vb_ceil(), 2);
+
+        // sat/kvb: 1_002_200 / 1_000 = 1_002.2
+        assert_eq!(fee_rate.to_sat_per_kvb_floor(), 1_002);
+        assert_eq!(fee_rate.to_sat_per_kvb_ceil(), 1_003);
     }
 
     #[test]
