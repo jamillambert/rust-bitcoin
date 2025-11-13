@@ -19,8 +19,14 @@ use internals::array::ArrayExt;
 use internals::slice::SliceExt;
 use internals::{impl_to_hex_from_lower_hex, write_err};
 use io::Write;
-use secp256k1::{Scalar, Secp256k1};
+#[doc(inline)]
+pub use primitives::taproot::{TapBranchTag, TapNodeHash};
+#[doc(inline)]
+pub use primitives::taproot::{TapTweakHash, TapTweakTag};
+use secp256k1::Secp256k1;
 
+#[cfg(test)]
+use crate::address::AddressScriptExt as _;
 use crate::consensus::Encodable;
 use crate::crypto::key::{
     SerializedXOnlyPublicKey, TapTweak, TweakedPublicKey, UntweakedPublicKey,
@@ -59,66 +65,8 @@ hashes::impl_hex_for_newtype!(TapLeafHash);
 #[cfg(feature = "serde")]
 hashes::impl_serde_for_newtype!(TapLeafHash);
 
-sha256t_tag! {
-    pub struct TapBranchTag = hash_str("TapBranch");
-}
-
-hash_newtype! {
-    /// Tagged hash used in Taproot trees.
-    ///
-    /// See BIP-0340 for tagging rules.
-    #[repr(transparent)]
-    pub struct TapNodeHash(sha256t::Hash<TapBranchTag>);
-}
-
-hashes::impl_hex_for_newtype!(TapNodeHash);
-#[cfg(feature = "serde")]
-hashes::impl_serde_for_newtype!(TapNodeHash);
-
-sha256t_tag! {
-    pub struct TapTweakTag = hash_str("TapTweak");
-}
-
-hash_newtype! {
-    /// Taproot-tagged hash with tag \"TapTweak\".
-    ///
-    /// This hash type is used while computing the tweaked public key.
-    pub struct TapTweakHash(sha256t::Hash<TapTweakTag>);
-}
-
-hashes::impl_hex_for_newtype!(TapTweakHash);
-#[cfg(feature = "serde")]
-hashes::impl_serde_for_newtype!(TapTweakHash);
-
 impl From<TapLeafHash> for TapNodeHash {
     fn from(leaf: TapLeafHash) -> Self { Self::from_byte_array(leaf.to_byte_array()) }
-}
-
-impl TapTweakHash {
-    /// Constructs a new BIP-0341 [`TapTweakHash`] from key and Merkle root. Produces `H_taptweak(P||R)` where
-    /// `P` is the internal key and `R` is the Merkle root.
-    pub fn from_key_and_merkle_root<K: Into<UntweakedPublicKey>>(
-        internal_key: K,
-        merkle_root: Option<TapNodeHash>,
-    ) -> Self {
-        let internal_key = internal_key.into();
-        let mut eng = sha256t::Hash::<TapTweakTag>::engine();
-        // always hash the key
-        eng.input(&internal_key.serialize());
-        if let Some(h) = merkle_root {
-            eng.input(h.as_ref());
-        } else {
-            // nothing to hash
-        }
-        let inner = sha256t::Hash::<TapTweakTag>::from_engine(eng);
-        Self::from_byte_array(inner.to_byte_array())
-    }
-
-    /// Converts a `TapTweakHash` into a `Scalar` ready for use with key tweaking API.
-    pub fn to_scalar(self) -> Scalar {
-        // This is statistically extremely unlikely to panic.
-        Scalar::from_be_bytes(self.to_byte_array()).expect("hash value greater than curve order")
-    }
 }
 
 impl TapLeafHash {
@@ -140,21 +88,9 @@ impl From<&LeafNode> for TapNodeHash {
     fn from(leaf: &LeafNode) -> Self { leaf.node_hash() }
 }
 
-impl TapNodeHash {
-    /// Computes branch hash given two hashes of the nodes underneath it.
-    pub fn from_node_hashes(a: Self, b: Self) -> Self { combine_node_hashes(a, b).0 }
-
-    /// Assumes the given 32 byte array as hidden [`TapNodeHash`].
-    ///
-    /// Similar to [`TapLeafHash::from_byte_array`], but explicitly conveys that the
-    /// hash is constructed from a hidden node. This also has better ergonomics
-    /// because it does not require the caller to import the Hash trait.
-    pub fn assume_hidden(hash: [u8; 32]) -> Self { Self::from_byte_array(hash) }
-
-    /// Computes the [`TapNodeHash`] from a script and a leaf version.
-    pub fn from_script(script: &TapScript, ver: LeafVersion) -> Self {
-        Self::from(TapLeafHash::from_script(script, ver))
-    }
+/// Computes the [`TapNodeHash`] from a script and a leaf version.
+fn tapnode_from_script(script: &TapScript, ver: LeafVersion) -> TapNodeHash {
+    TapLeafHash::from_script(script, ver).into()
 }
 
 /// Computes branch hash given two hashes of the nodes underneath it and returns
@@ -292,7 +228,10 @@ impl TaprootSpendInfo {
     /// Returns the `TapTweakHash` for this [`TaprootSpendInfo`] i.e., the tweak using `internal_key`
     /// and `merkle_root`.
     pub fn tap_tweak(&self) -> TapTweakHash {
-        TapTweakHash::from_key_and_merkle_root(self.internal_key, self.merkle_root)
+        primitives::taproot::TapTweakHash::from_bytes_and_merkle_root(
+            self.internal_key.serialize(),
+            self.merkle_root,
+        )
     }
 
     /// Returns the internal key for this [`TaprootSpendInfo`].
@@ -921,7 +860,7 @@ impl NodeInfo {
     /// Constructs a new leaf [`NodeInfo`] with given [`TapScriptBuf`] and [`LeafVersion`].
     pub fn new_leaf_with_ver(script: TapScriptBuf, ver: LeafVersion) -> Self {
         Self {
-            hash: TapNodeHash::from_script(&script, ver),
+            hash: tapnode_from_script(&script, ver),
             leaves: vec![LeafNode::new_script(script, ver)],
             has_hidden_nodes: false,
         }
@@ -1295,15 +1234,21 @@ impl<Branch: AsRef<TaprootMerkleBranch> + ?Sized> ControlBlock<Branch> {
     ) -> bool {
         // compute the script hash
         // Initially the curr_hash is the leaf hash
-        let mut curr_hash = TapNodeHash::from_script(script, self.leaf_version);
+        let mut curr_hash = tapnode_from_script(script, self.leaf_version);
         // Verify the proof
         for elem in self.merkle_branch.as_ref() {
             // Recalculate the curr hash as parent hash
-            curr_hash = TapNodeHash::from_node_hashes(curr_hash, *elem);
+            curr_hash = combine_node_hashes(curr_hash, *elem).0;
         }
         // compute the taptweak
-        let tweak =
-            TapTweakHash::from_key_and_merkle_root(self.internal_key, Some(curr_hash)).to_scalar();
+        let tweak = {
+            let t = primitives::taproot::TapTweakHash::from_bytes_and_merkle_root(
+                self.internal_key.serialize(),
+                Some(curr_hash),
+            );
+            secp256k1::Scalar::from_be_bytes(t.to_byte_array())
+                .expect("hash value greater than curve order")
+        };
         self.internal_key.tweak_add_check(secp, &output_key, self.output_key_parity, tweak)
     }
 }
@@ -2099,7 +2044,10 @@ mod test {
                 .unwrap()
                 .assume_checked();
 
-            let tweak = TapTweakHash::from_key_and_merkle_root(internal_key, merkle_root);
+            let tweak = primitives::taproot::TapTweakHash::from_bytes_and_merkle_root(
+                internal_key.serialize(),
+                merkle_root,
+            );
             let (output_key, _parity) = internal_key.tap_tweak(secp, merkle_root);
             let addr = Address::p2tr(secp, internal_key, merkle_root, KnownHrp::Mainnet);
             let spk = addr.script_pubkey();

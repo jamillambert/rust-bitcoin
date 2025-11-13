@@ -14,10 +14,19 @@ exclude = ["tests", "contrib"]
 
 [features]
 default = ["std"]
-std = ["alloc"]
-alloc = []
+std = ["alloc", "base58/std", "bech32/std", "hashes/std", "primitives/std", "keys/std", "internals/std", "bitcoin_network/std"]
+alloc = ["base58/alloc", "bech32/alloc", "hashes/alloc", "bitcoin_network/alloc"]
+serde = ["dep:serde", "bitcoin_network/serde"]
 
 [dependencies]
+base58 = { package = "base58ck", path = "../base58", default-features = false }
+bech32 = { version = "0.11", default-features = false }
+hashes = { package = "bitcoin_hashes", path = "../hashes", default-features = false }
+primitives = { package = "bitcoin-primitives", path = "../primitives", default-features = false, features = ["alloc"] }
+bitcoin_network = { package = "bitcoin-network", path = "../network", default-features = false, features = ["alloc"] }
+keys = { package = "bitcoin-keys", path = "../keys", default-features = false }
+internals = { package = "bitcoin-internals", path = "../internals", default-features = false, features = ["alloc"] }
+serde = { version = "1.0.195", default-features = false, features = ["derive", "alloc"], optional = true }
 
 [dev-dependencies]
 
