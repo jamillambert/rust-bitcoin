@@ -5,6 +5,8 @@
 mod borrowed;
 mod owned;
 mod tag;
+pub mod witness_program;
+pub mod witness_version;
 
 use core::cmp::Ordering;
 use core::fmt;
@@ -27,6 +29,10 @@ pub use self::{
     owned::{ScriptBuf, ScriptBufDecoder, ScriptBufDecoderError},
     tag::{Tag, RedeemScriptTag, ScriptPubKeyTag, ScriptSigTag, TapScriptTag, WitnessScriptTag},
 };
+#[doc(inline)]
+pub use self::witness_program::WitnessProgram;
+#[doc(inline)]
+pub use self::witness_version::WitnessVersion;
 #[doc(inline)]
 pub use crate::hash_types::{
     RedeemScriptSizeError, ScriptHash, WScriptHash, WitnessScriptSizeError,

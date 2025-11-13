@@ -2013,8 +2013,16 @@ mod tests {
             // tests
             let keypair = secp256k1::Keypair::from_secret_key(secp, &internal_priv_key);
             let (internal_key, _parity) = XOnlyPublicKey::from_keypair(&keypair);
-            let tweak = TapTweakHash::from_key_and_merkle_root(internal_key, merkle_root);
-            let tweaked_keypair = keypair.add_xonly_tweak(secp, &tweak.to_scalar()).unwrap();
+            let tweak = primitives::taproot::TapTweakHash::from_bytes_and_merkle_root(
+                internal_key.serialize(),
+                merkle_root,
+            );
+            let tweaked_keypair = keypair
+                .add_xonly_tweak(
+                    secp,
+                    &secp256k1::Scalar::from_be_bytes(tweak.to_byte_array()).expect("valid scalar"),
+                )
+                .unwrap();
             let mut sig_msg = Vec::new();
             cache
                 .taproot_encode_signing_data_to(

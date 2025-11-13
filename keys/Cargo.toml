@@ -1,0 +1,33 @@
+[package]
+name = "bitcoin-keys"
+version = "0.0.0"
+authors = ["Andrew Poelstra <apoelstra@wpsoftware.net>"]
+license = "CC0-1.0"
+repository = "https://github.com/rust-bitcoin/rust-bitcoin"
+description = "Bitcoin key types for use across crates"
+categories = ["cryptography::cryptocurrencies"]
+keywords = ["bitcoin", "keys"]
+readme = "README.md"
+edition = "2021"
+rust-version = "1.74.0"
+exclude = ["tests", "contrib"]
+
+[features]
+default = ["std"]
+std = ["alloc", "secp256k1/std", "hashes/std"]
+alloc = []
+
+[dependencies]
+secp256k1 = { version = "0.30", default-features = false, features = ["alloc"] }
+hashes = { package = "bitcoin_hashes", path = "../hashes", default-features = false }
+primitives = { package = "bitcoin-primitives", path = "../primitives", default-features = false, features = ["alloc"] }
+
+[dev-dependencies]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[lints.clippy]
+redundant_clone = "warn"
+use_self = "warn"

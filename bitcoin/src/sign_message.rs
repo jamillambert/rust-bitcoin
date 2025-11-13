@@ -153,7 +153,9 @@ mod message_signing {
             match address.address_type() {
                 Some(AddressType::P2pkh) => {
                     let pubkey = self.recover_pubkey(secp_ctx, msg_hash)?;
-                    Ok(address.pubkey_hash() == Some(pubkey.pubkey_hash()))
+                    let address_hash = address.pubkey_hash().map(|hash| hash.to_byte_array());
+                    let recovered_hash = pubkey.pubkey_hash().to_byte_array();
+                    Ok(address_hash == Some(recovered_hash))
                 }
                 Some(address_type) =>
                     Err(MessageSignatureError::UnsupportedAddressType(address_type)),
@@ -242,6 +244,7 @@ mod tests {
     fn message_signature() {
         use secp256k1;
 
+        use crate::address::AddressScriptExt as _;
         use crate::{Address, AddressType, Network, NetworkKind};
 
         let secp = secp256k1::Secp256k1::new();

@@ -23,6 +23,7 @@ use crate::network::NetworkKind;
 use crate::prelude::{DisplayHex, String, Vec};
 use crate::script::{self, WitnessScriptBuf};
 use crate::taproot::{TapNodeHash, TapTweakHash};
+use primitives::taproot::TapTweakKey;
 
 #[rustfmt::skip]                // Keep public re-exports separate.
 pub use secp256k1::{constants, Keypair, Parity, Secp256k1, Verification};
@@ -139,6 +140,10 @@ impl_to_hex_from_lower_hex!(XOnlyPublicKey, |_| constants::SCHNORR_PUBLIC_KEY_SI
 
 impl fmt::Display for XOnlyPublicKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { fmt::Display::fmt(&self.0, f) }
+}
+
+impl TapTweakKey for XOnlyPublicKey {
+    fn tap_tweak_bytes(self) -> [u8; 32] { self.serialize() }
 }
 
 /// A Bitcoin ECDSA public key.
@@ -918,6 +923,18 @@ pub trait TapTweak {
     fn dangerous_assume_tweaked(self) -> Self::TweakedKey;
 }
 
+fn tap_tweak_scalar_from_key(
+    key: UntweakedPublicKey,
+    merkle_root: Option<TapNodeHash>,
+) -> secp256k1::Scalar {
+    tap_tweak_hash_to_scalar(TapTweakHash::from_key_and_merkle_root(key, merkle_root))
+}
+
+fn tap_tweak_hash_to_scalar(hash: TapTweakHash) -> secp256k1::Scalar {
+    secp256k1::Scalar::from_be_bytes(hash.to_byte_array())
+        .expect("hash value greater than curve order")
+}
+
 impl TapTweak for UntweakedPublicKey {
     type TweakedAux = (TweakedPublicKey, Parity);
     type TweakedKey = TweakedPublicKey;
@@ -940,7 +957,7 @@ impl TapTweak for UntweakedPublicKey {
         secp: &Secp256k1<C>,
         merkle_root: Option<TapNodeHash>,
     ) -> (TweakedPublicKey, Parity) {
-        let tweak = TapTweakHash::from_key_and_merkle_root(self, merkle_root).to_scalar();
+        let tweak = tap_tweak_scalar_from_key(self, merkle_root);
         let (output_key, parity) = self.add_tweak(secp, &tweak).expect("Tap tweak failed");
 
         debug_assert!(self.tweak_add_check(secp, &output_key, parity, tweak));
@@ -970,7 +987,7 @@ impl TapTweak for UntweakedKeypair {
         merkle_root: Option<TapNodeHash>,
     ) -> TweakedKeypair {
         let (pubkey, _parity) = XOnlyPublicKey::from_keypair(&self);
-        let tweak = TapTweakHash::from_key_and_merkle_root(pubkey, merkle_root).to_scalar();
+        let tweak = tap_tweak_scalar_from_key(pubkey, merkle_root);
         let tweaked = self.add_xonly_tweak(secp, &tweak).expect("Tap tweak failed");
         TweakedKeypair(tweaked)
     }
@@ -1385,6 +1402,10 @@ impl fmt::Debug for SerializedXOnlyPublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.as_byte_array().as_hex(), f)
     }
+}
+
+impl TapTweakKey for SerializedXOnlyPublicKey {
+    fn tap_tweak_bytes(self) -> [u8; 32] { self.to_byte_array() }
 }
 
 /// Error that can occur when parsing an [`XOnlyPublicKey`] from bytes.

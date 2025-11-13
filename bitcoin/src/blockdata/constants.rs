@@ -138,30 +138,34 @@ pub fn genesis_block(params: impl AsRef<Params>) -> Block<Checked> {
             transactions,
         )
         .assume_checked(witness_root),
-        Network::Testnet(TestnetVersion::V3) => Block::new_unchecked(
-            block::Header {
-                version: block::Version::ONE,
-                prev_blockhash: BlockHash::GENESIS_PREVIOUS_BLOCK_HASH,
-                merkle_root,
-                time: BlockTime::from_u32(1296688602),
-                bits: CompactTarget::from_consensus(0x1d00ffff),
-                nonce: 414098458,
-            },
-            transactions,
-        )
-        .assume_checked(witness_root),
-        Network::Testnet(TestnetVersion::V4) => Block::new_unchecked(
-            block::Header {
-                version: block::Version::ONE,
-                prev_blockhash: BlockHash::GENESIS_PREVIOUS_BLOCK_HASH,
-                merkle_root,
-                time: BlockTime::from_u32(1714777860),
-                bits: CompactTarget::from_consensus(0x1d00ffff),
-                nonce: 393743547,
-            },
-            transactions,
-        )
-        .assume_checked(witness_root),
+        Network::Testnet(tv) => match tv {
+            TestnetVersion::V3 => Block::new_unchecked(
+                block::Header {
+                    version: block::Version::ONE,
+                    prev_blockhash: BlockHash::GENESIS_PREVIOUS_BLOCK_HASH,
+                    merkle_root,
+                    time: BlockTime::from_u32(1296688602),
+                    bits: CompactTarget::from_consensus(0x1d00ffff),
+                    nonce: 414098458,
+                },
+                transactions,
+            )
+            .assume_checked(witness_root),
+            TestnetVersion::V4 => Block::new_unchecked(
+                block::Header {
+                    version: block::Version::ONE,
+                    prev_blockhash: BlockHash::GENESIS_PREVIOUS_BLOCK_HASH,
+                    merkle_root,
+                    time: BlockTime::from_u32(1714777860),
+                    bits: CompactTarget::from_consensus(0x1d00ffff),
+                    nonce: 393743547,
+                },
+                transactions,
+            )
+            .assume_checked(witness_root),
+            #[allow(unreachable_patterns)]
+            _ => panic!("update testnet genesis data for new variants"),
+        },
         Network::Signet => Block::new_unchecked(
             block::Header {
                 version: block::Version::ONE,
@@ -236,8 +240,12 @@ impl ChainHash {
     pub fn using_genesis_block(params: impl AsRef<Params>) -> Self {
         match params.as_ref().network {
             Network::Bitcoin => Self::BITCOIN,
-            Network::Testnet(TestnetVersion::V3) => Self::TESTNET3,
-            Network::Testnet(TestnetVersion::V4) => Self::TESTNET4,
+            Network::Testnet(tv) => match tv {
+                TestnetVersion::V3 => Self::TESTNET3,
+                TestnetVersion::V4 => Self::TESTNET4,
+                #[allow(unreachable_patterns)]
+                _ => Self::TESTNET4,
+            },
             Network::Signet => Self::SIGNET,
             Network::Regtest => Self::REGTEST,
         }
@@ -250,8 +258,12 @@ impl ChainHash {
     pub const fn using_genesis_block_const(network: Network) -> Self {
         match network {
             Network::Bitcoin => Self::BITCOIN,
-            Network::Testnet(TestnetVersion::V3) => Self::TESTNET3,
-            Network::Testnet(TestnetVersion::V4) => Self::TESTNET4,
+            Network::Testnet(tv) => match tv {
+                TestnetVersion::V3 => Self::TESTNET3,
+                TestnetVersion::V4 => Self::TESTNET4,
+                #[allow(unreachable_patterns)]
+                _ => Self::TESTNET4,
+            },
             Network::Signet => Self::SIGNET,
             Network::Regtest => Self::REGTEST,
         }

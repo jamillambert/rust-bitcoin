@@ -60,7 +60,6 @@ use core::fmt;
 
 use io::{BufRead, Write};
 
-use self::witness_version::WitnessVersion;
 use crate::consensus::{encode, Decodable, Encodable};
 use crate::internal_macros::impl_asref_push_bytes;
 use crate::key::WPubkeyHash;
@@ -88,6 +87,10 @@ pub use primitives::script::{
 
 pub(crate) use self::borrowed::ScriptExtPriv;
 pub(crate) use self::owned::ScriptBufExtPriv;
+#[doc(inline)]
+pub use self::witness_program::WitnessProgram;
+#[doc(inline)]
+pub use self::witness_version::WitnessVersion;
 
 impl_asref_push_bytes!(ScriptHash, WScriptHash);
 

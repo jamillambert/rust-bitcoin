@@ -50,6 +50,7 @@ pub mod merkle_tree;
 pub mod pow;
 #[cfg(feature = "alloc")]
 pub mod script;
+pub mod taproot;
 pub mod transaction;
 #[cfg(feature = "alloc")]
 pub mod witness;

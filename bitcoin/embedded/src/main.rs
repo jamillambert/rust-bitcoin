@@ -1,5 +1,4 @@
 #![feature(alloc_error_handler)]
-#![feature(panic_info_message)]
 #![no_std]
 #![no_main]
 
@@ -42,7 +41,7 @@ fn main() -> ! {
     let secp = Secp256k1::preallocated_new(&mut buf_ful).unwrap();
 
     // Derive address
-    let pubkey = pk.public_key(&secp).try_into().unwrap();
+    let pubkey: bitcoin::CompressedPublicKey = pk.public_key(&secp).try_into().unwrap();
     let address = Address::p2wpkh(pubkey, Network::Bitcoin);
     hprintln!("Address: {}", address).unwrap();
 

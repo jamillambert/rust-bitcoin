@@ -15,6 +15,7 @@ entry in [roadmap.md] and likely also a file of their own.
 - `hashes`: Rust Bitcoin hashes library.
 - `internals`: Used internally by crates in this repo.
 - `io`: Rust Bitcoin I/O library (to support `no_std`).
+- `network`: Bitcoin network identifiers and helpers shared across crates.
 - `p2p`: Rust Bitcoin peer to peer message types.
 - `primitives`: Rust Bitcoin primitive types.
 - `units`: Rust Bitcoin unit types.

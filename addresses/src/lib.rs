@@ -26,3 +26,28 @@ extern crate alloc;
 
 #[cfg(feature = "std")]
 extern crate std;
+
+/// Address-related constants.
+pub mod constants {
+    /// Legacy Base58 address version byte for mainnet P2PKH (0x00).
+    pub const PUBKEY_ADDRESS_PREFIX_MAIN: u8 = 0;
+    /// Legacy Base58 address version byte for mainnet P2SH (0x05).
+    pub const SCRIPT_ADDRESS_PREFIX_MAIN: u8 = 5;
+    /// Legacy Base58 address version byte for testnets P2PKH (0x6f).
+    pub const PUBKEY_ADDRESS_PREFIX_TEST: u8 = 111;
+    /// Legacy Base58 address version byte for testnets P2SH (0xc4).
+    pub const SCRIPT_ADDRESS_PREFIX_TEST: u8 = 196;
+}
+
+pub mod address;
+
+#[rustfmt::skip]
+pub use {
+	keys,
+	primitives,
+};
+
+#[doc(inline)]
+pub use address::error::*;
+#[doc(inline)]
+pub use address::{Address, AddressType, KnownHrp};

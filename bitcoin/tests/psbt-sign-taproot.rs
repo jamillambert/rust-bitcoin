@@ -2,6 +2,7 @@
 
 use std::collections::BTreeMap;
 
+use bitcoin::address::AddressScriptExt as _;
 use bitcoin::bip32::{DerivationPath, Fingerprint};
 use bitcoin::consensus::encode::serialize_hex;
 use bitcoin::opcodes::all::OP_CHECKSIG;
@@ -191,7 +192,11 @@ fn create_taproot_tree<K: Into<XOnlyPublicKey>>(
 
 fn create_p2tr_address(tree: TaprootSpendInfo) -> Address {
     let output_key = tree.output_key();
-    Address::p2tr_tweaked(output_key, Network::Testnet(bitcoin::TestnetVersion::V3))
+    let x_only = output_key.to_x_only_public_key();
+    let keys_tweaked = addresses::keys::TweakedPublicKey(addresses::keys::XOnlyPublicKey::from(
+        x_only.into_inner(),
+    ));
+    Address::p2tr_tweaked(keys_tweaked, Network::Testnet(bitcoin::TestnetVersion::V3))
 }
 
 fn create_psbt_for_taproot_key_path_spend(

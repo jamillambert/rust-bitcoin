@@ -8,6 +8,7 @@ tagging and the consensus encoding re-write.
 - Introduce script tagging [#4907](https://github.com/rust-bitcoin/rust-bitcoin/pull/4907)
 - Introduce pull encoding and use it for blockhash computation [#4912](https://github.com/rust-bitcoin/rust-bitcoin/pull/4912)
 - Implement `Encodable` for `&Script<T>` [#4978](https://github.com/rust-bitcoin/rust-bitcoin/pull/4978)
+- Move the `network` module into the new `bitcoin-network` crate; depend on it directly instead of going through `primitives`.
 
 And also we did:
 
