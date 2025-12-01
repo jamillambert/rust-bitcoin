@@ -65,7 +65,7 @@ use primitives::script::{
 };
 use taproot_primitives::TapNodeHash;
 
-use crate::constants::{
+use addresses::constants::{
     PUBKEY_ADDRESS_PREFIX_MAIN, PUBKEY_ADDRESS_PREFIX_TEST, SCRIPT_ADDRESS_PREFIX_MAIN,
     SCRIPT_ADDRESS_PREFIX_TEST,
 };
