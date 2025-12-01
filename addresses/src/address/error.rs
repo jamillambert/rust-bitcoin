@@ -8,7 +8,7 @@ use internals::write_err;
 use network::Network;
 use primitives::script::{witness_program, witness_version};
 
-use crate::address::{Address, NetworkUnchecked};
+use super::{Address, NetworkUnchecked};
 
 /// Error while generating address from script.
 #[derive(Debug, Clone, PartialEq, Eq)]
