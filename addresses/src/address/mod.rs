@@ -43,6 +43,8 @@ pub mod error;
 use alloc::borrow::ToOwned;
 use alloc::format;
 use alloc::string::String;
+use alloc::vec::Vec;
+use core::convert::TryInto;
 use core::fmt;
 use core::marker::PhantomData;
 use core::str::FromStr;
@@ -60,7 +62,6 @@ use network::{Network, NetworkKind};
 use primitives::script::witness_program::WitnessProgram;
 use primitives::script::witness_version::WitnessVersion;
 use primitives::script::{
-    self,
     RedeemScriptSizeError,
     Script,
     ScriptHash,
@@ -524,7 +525,7 @@ impl Address {
         redeem_script: &Script<T>,
         network: impl Into<NetworkKind>,
     ) -> Result<Self, RedeemScriptSizeError> {
-        let hash = redeem_script.script_hash()?;
+        let hash = ScriptHash::from_script(redeem_script)?;
         Ok(Self::p2sh_from_hash(hash, network))
     }
 
@@ -551,8 +552,10 @@ impl Address {
     ///
     /// This is a SegWit address type that looks familiar (as p2sh) to legacy clients.
     pub fn p2shwpkh(pk: CompressedPublicKey, network: impl Into<NetworkKind>) -> Self {
-        let builder = ScriptPubKey::builder().push_int_unchecked(0).push_slice(pk.wpubkey_hash());
-        let script_hash = builder.as_script().script_hash().expect("script is less than 520 bytes");
+        let wpkh = pk.wpubkey_hash();
+        let witness_script = witness_program_script(WitnessVersion::V0, wpkh.as_byte_array());
+        let script_hash = ScriptHash::from_script(witness_script.as_script())
+            .expect("script is less than 520 bytes");
         Self::p2sh_from_hash(script_hash, network)
     }
 
@@ -579,9 +582,10 @@ impl Address {
         witness_script: &WitnessScript,
         network: impl Into<NetworkKind>,
     ) -> Result<Self, WitnessScriptSizeError> {
-        let hash = witness_script.wscript_hash()?;
-        let builder = ScriptPubKey::builder().push_int_unchecked(0).push_slice(hash);
-        let script_hash = builder.as_script().script_hash().expect("script is less than 520 bytes");
+        let witness_hash = WScriptHash::from_script(witness_script)?;
+        let witness_program = witness_program_script(WitnessVersion::V0, witness_hash.as_byte_array());
+        let script_hash = ScriptHash::from_script(witness_program.as_script())
+            .expect("script is less than 520 bytes");
         Ok(Self::p2sh_from_hash(script_hash, network))
     }
 
@@ -695,22 +699,15 @@ impl Address {
     /// Constructs a new [`Address`] from an output script (`scriptPubkey`).
     pub fn from_script(
         script: &ScriptPubKey,
-        params: impl AsRef<Params>,
+        params: impl AsRef<Network>,
     ) -> Result<Self, FromScriptError> {
-        let network = params.as_ref().network;
-        if script.is_p2pkh() {
-            let bytes = script.as_bytes()[3..23].try_into().expect("statically 20B long");
-            let hash = PubkeyHash::from_byte_array(bytes);
+        let network = *params.as_ref();
+        if let Some(hash) = parse_p2pkh(script) {
             Ok(Self::p2pkh(hash, network))
-        } else if script.is_p2sh() {
-            let bytes = script.as_bytes()[2..22].try_into().expect("statically 20B long");
-            let hash = ScriptHash::from_byte_array(bytes);
+        } else if let Some(hash) = parse_p2sh(script) {
             Ok(Self::p2sh_from_hash(hash, network))
-        } else if script.is_witness_program() {
-            let opcode = script.first_opcode().expect("is_witness_program guarantees len > 4");
-
-            let version = WitnessVersion::try_from(opcode)?;
-            let program = WitnessProgram::new(version, &script.as_bytes()[2..])?;
+        } else if let Some((version, program_bytes)) = parse_witness_program(script) {
+            let program = WitnessProgram::new(version, program_bytes)?;
             Ok(Self::from_witness_program(program, network))
         } else {
             Err(FromScriptError::UnrecognizedScript)
@@ -721,13 +718,9 @@ impl Address {
     pub fn script_pubkey(&self) -> ScriptPubKeyBuf {
         use AddressInner::*;
         match *self.inner() {
-            P2pkh { hash, network: _ } => ScriptPubKeyBuf::new_p2pkh(hash),
-            P2sh { hash, network: _ } => ScriptPubKeyBuf::new_p2sh(hash),
-            Segwit { ref program, hrp: _ } => {
-                let prog = script::witness_program::WitnessProgramExt::program(program);
-                let version = program.version();
-                script::new_witness_program_unchecked(version, prog)
-            }
+            P2pkh { hash, network: _ } => build_p2pkh_script(&hash),
+            P2sh { hash, network: _ } => build_p2sh_script(&hash),
+            Segwit { ref program, hrp: _ } => witness_program_script_from_program(program),
         }
     }
 
@@ -788,13 +781,11 @@ impl Address {
     pub fn matches_script_pubkey(&self, script: &ScriptPubKey) -> bool {
         use AddressInner::*;
         match *self.inner() {
-            P2pkh { ref hash, network: _ } if script.is_p2pkh() =>
-                &script.as_bytes()[3..23] == <PubkeyHash as AsRef<[u8; 20]>>::as_ref(hash),
-            P2sh { ref hash, network: _ } if script.is_p2sh() =>
-                &script.as_bytes()[2..22] == <ScriptHash as AsRef<[u8; 20]>>::as_ref(hash),
-            Segwit { ref program, hrp: _ } if script.is_witness_program() =>
-                &script.as_bytes()[2..] == program.program(),
-            P2pkh { .. } | P2sh { .. } | Segwit { .. } => false,
+            P2pkh { ref hash, network: _ } => parse_p2pkh(script) == Some(*hash),
+            P2sh { ref hash, network: _ } => parse_p2sh(script) == Some(*hash),
+            Segwit { ref program, hrp: _ } => parse_witness_program(script).is_some_and(|(version, payload)| {
+                version == program.version() && payload == program.program()
+            }),
         }
     }
 
@@ -1026,4 +1017,110 @@ fn segwit_redeem_hash(pubkey_hash: PubkeyHash) -> hash160::Hash {
     sha_engine.input(&[0, 20]);
     sha_engine.input(pubkey_hash.as_ref());
     hash160::Hash::from_engine(sha_engine)
+}
+
+const OP_DUP: u8 = 0x76;
+const OP_HASH160: u8 = 0xa9;
+const OP_EQUAL: u8 = 0x87;
+const OP_EQUALVERIFY: u8 = 0x88;
+const OP_CHECKSIG: u8 = 0xac;
+const OP_PUSHNUM_BASE: u8 = 0x50;
+const P2PKH_SCRIPT_LEN: usize = 25;
+const P2SH_SCRIPT_LEN: usize = 23;
+
+fn build_p2pkh_script(hash: &PubkeyHash) -> ScriptPubKeyBuf {
+    let mut bytes = Vec::with_capacity(P2PKH_SCRIPT_LEN);
+    bytes.push(OP_DUP);
+    bytes.push(OP_HASH160);
+    bytes.push(20);
+    bytes.extend_from_slice(hash.as_byte_array());
+    bytes.push(OP_EQUALVERIFY);
+    bytes.push(OP_CHECKSIG);
+    ScriptPubKeyBuf::from_bytes(bytes)
+}
+
+fn build_p2sh_script(hash: &ScriptHash) -> ScriptPubKeyBuf {
+    let mut bytes = Vec::with_capacity(P2SH_SCRIPT_LEN);
+    bytes.push(OP_HASH160);
+    bytes.push(20);
+    bytes.extend_from_slice(hash.as_byte_array());
+    bytes.push(OP_EQUAL);
+    ScriptPubKeyBuf::from_bytes(bytes)
+}
+
+fn witness_program_script_from_program(program: &WitnessProgram) -> ScriptPubKeyBuf {
+    witness_program_script(program.version(), program.program())
+}
+
+fn witness_program_script(version: WitnessVersion, program: &[u8]) -> ScriptPubKeyBuf {
+    debug_assert!((2..=40).contains(&program.len()));
+    let mut bytes = Vec::with_capacity(program.len() + 2);
+    bytes.push(witness_version_opcode(version));
+    bytes.push(program.len() as u8);
+    bytes.extend_from_slice(program);
+    ScriptPubKeyBuf::from_bytes(bytes)
+}
+
+fn parse_p2pkh(script: &ScriptPubKey) -> Option<PubkeyHash> {
+    let bytes = script.as_bytes();
+    if bytes.len() != P2PKH_SCRIPT_LEN
+        || bytes[0] != OP_DUP
+        || bytes[1] != OP_HASH160
+        || bytes[2] != 20
+        || bytes[23] != OP_EQUALVERIFY
+        || bytes[24] != OP_CHECKSIG
+    {
+        return None;
+    }
+
+    let payload: [u8; 20] = bytes[3..23].try_into().ok()?;
+    Some(PubkeyHash::from_byte_array(payload))
+}
+
+fn parse_p2sh(script: &ScriptPubKey) -> Option<ScriptHash> {
+    let bytes = script.as_bytes();
+    if bytes.len() != P2SH_SCRIPT_LEN
+        || bytes[0] != OP_HASH160
+        || bytes[1] != 20
+        || bytes[22] != OP_EQUAL
+    {
+        return None;
+    }
+
+    let payload: [u8; 20] = bytes[2..22].try_into().ok()?;
+    Some(ScriptHash::from_byte_array(payload))
+}
+
+fn parse_witness_program(script: &ScriptPubKey) -> Option<(WitnessVersion, &[u8])> {
+    let bytes = script.as_bytes();
+    if bytes.len() < 4 {
+        return None;
+    }
+
+    let program_len = *bytes.get(1)? as usize;
+    if program_len != bytes.len().saturating_sub(2) {
+        return None;
+    }
+    if !(2..=40).contains(&program_len) {
+        return None;
+    }
+
+    let version = witness_version_from_opcode(*bytes.first()?)?;
+    Some((version, &bytes[2..]))
+}
+
+fn witness_version_opcode(version: WitnessVersion) -> u8 {
+    match version.to_num() {
+        0 => 0x00,
+        n @ 1..=16 => OP_PUSHNUM_BASE + n,
+        _ => unreachable!("invalid witness version"),
+    }
+}
+
+fn witness_version_from_opcode(opcode: u8) -> Option<WitnessVersion> {
+    match opcode {
+        0x00 => Some(WitnessVersion::V0),
+        0x51..=0x60 => WitnessVersion::try_from(opcode - OP_PUSHNUM_BASE).ok(),
+        _ => None,
+    }
 }
