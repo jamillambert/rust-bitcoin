@@ -221,6 +221,10 @@ impl FromStr for Network {
     }
 }
 
+impl AsRef<Self> for Network {
+    fn as_ref(&self) -> &Self { self }
+}
+
 #[rustfmt::skip]
 #[allow(unused_imports)]
 mod prelude {

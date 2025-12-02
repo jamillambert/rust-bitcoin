@@ -69,7 +69,6 @@ use crate::constants::{
     PUBKEY_ADDRESS_PREFIX_MAIN, PUBKEY_ADDRESS_PREFIX_TEST, SCRIPT_ADDRESS_PREFIX_MAIN,
     SCRIPT_ADDRESS_PREFIX_TEST,
 };
-use crate::network::Params;
 use crate::script::{
     self, ScriptExt as _, ScriptPubKeyBufExt as _, ScriptPubKeyExt as _, WitnessScriptExt as _,
 };
@@ -938,7 +937,7 @@ pub trait AddressScriptExt: Sized {
     /// Constructs a new [`Address`] from an output script (`scriptPubkey`).
     fn from_script(
         script: &ScriptPubKey,
-        params: impl AsRef<Params>,
+        params: impl AsRef<Network>,
     ) -> Result<Self, FromScriptError>;
 
     /// Generates a script pubkey spending to this address.
@@ -1013,9 +1012,9 @@ impl AddressScriptExt for Address {
     /// Constructs a new [`Address`] from an output script (`scriptPubkey`).
     fn from_script(
         script: &ScriptPubKey,
-        params: impl AsRef<Params>,
+        network: impl AsRef<Network>,
     ) -> Result<Self, FromScriptError> {
-        let network = params.as_ref().network;
+        let network = *AsRef::<Network>::as_ref(&network);
         if script.is_p2pkh() {
             let bytes = script.as_bytes()[3..23].try_into().expect("statically 20B long");
             let hash = PubkeyHash::from_byte_array(bytes);
@@ -1070,7 +1069,7 @@ mod tests {
     use hex_lit::hex;
 
     use super::*;
-    use crate::network::Network::{Bitcoin, Testnet};
+    use crate::network::Network::{self, Bitcoin, Testnet};
     use crate::network::{params, TestnetVersion};
     use crate::script::{RedeemScriptBuf, ScriptBufExt as _, WitnessScriptBuf};
 

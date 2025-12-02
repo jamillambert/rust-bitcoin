@@ -280,3 +280,7 @@ impl AsRef<Self> for Params {
 impl AsRef<Params> for Network {
     fn as_ref(&self) -> &Params { super::params(*self) }
 }
+
+impl AsRef<Network> for Params {
+    fn as_ref(&self) -> &Network { &self.network }
+}
