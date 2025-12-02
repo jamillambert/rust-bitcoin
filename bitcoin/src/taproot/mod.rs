@@ -1410,7 +1410,6 @@ mod test {
     use hex::DisplayHex;
 
     use super::*;
-    use crate::address::AddressScriptExt as _;
     use crate::script::ScriptBufExt as _;
     use crate::sighash::TapSighashTag;
     use crate::{Address, KnownHrp, ScriptPubKeyBuf};

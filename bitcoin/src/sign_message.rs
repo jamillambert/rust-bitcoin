@@ -234,7 +234,6 @@ mod tests {
     fn message_signature() {
         use secp256k1::ecdsa::RecoverableSignature;
 
-        use crate::address::AddressScriptExt as _;
         use crate::{Address, AddressType, Network, NetworkKind};
 
         let message = "rust-bitcoin MessageSignature test";

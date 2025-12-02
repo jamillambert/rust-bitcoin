@@ -31,7 +31,6 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use bitcoin::address::AddressScriptExt as _;
 use bitcoin::bip32::{ChildNumber, DerivationPath, Fingerprint, IntoDerivationPath, Xpriv, Xpub};
 use bitcoin::consensus::encode;
 use bitcoin::ext::*;
