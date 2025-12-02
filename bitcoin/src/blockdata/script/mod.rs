@@ -129,14 +129,14 @@ pub use self::{
     builder::Builder,
     instruction::{Instruction, Instructions, InstructionIndices},
     owned::{ScriptBufExt, ScriptPubKeyBufExt},
-    push_bytes::{PushBytes, PushBytesBuf, PushBytesError, PushBytesErrorReport},
+    push_bytes::{PushBytes, PushBytesBuf, PushBytesError, PushBytesErrorReport, ScriptIntError},
 };
 #[doc(inline)]
 pub use primitives::script::{
     RedeemScript, RedeemScriptBuf, RedeemScriptSizeError, RedeemScriptTag, Script, ScriptBuf,
     ScriptHash, ScriptHashableTag, ScriptPubKey, ScriptPubKeyBuf, ScriptPubKeyTag, ScriptSig,
-    ScriptSigBuf, ScriptSigTag, Tag, TapScript, TapScriptBuf, WScriptHash, WitnessScript,
-    WitnessScriptBuf, WitnessScriptSizeError, WitnessScriptTag,
+    ScriptSigBuf, ScriptSigTag, Tag, TapScript, TapScriptBuf, TapScriptTag, WScriptHash,
+    WitnessScript, WitnessScriptBuf, WitnessScriptSizeError, WitnessScriptTag,
 };
 
 pub(crate) use self::borrowed::ScriptExtPriv;
@@ -208,15 +208,16 @@ pub fn write_scriptint(out: &mut [u8; 8], n: i64) -> usize {
 ///
 /// See [`push_bytes::PushBytes::read_scriptint`] for a description of some subtleties of
 /// this function.
-pub fn read_scriptint_non_minimal(v: &[u8]) -> Result<i64, Error> {
+pub fn read_scriptint_non_minimal(v: &[u8]) -> Result<i32, ScriptIntError> {
     if v.is_empty() {
         return Ok(0);
     }
     if v.len() > 4 {
-        return Err(Error::NumericOverflow);
+        return Err(ScriptIntError::NumericOverflow);
     }
 
-    Ok(scriptint_parse(v))
+    let ret = scriptint_parse(v);
+    Ok(i32::try_from(ret).expect("4 bytes or less fits in an i32"))
 }
 
 // Caller to guarantee that `v` is not empty.
@@ -315,15 +316,13 @@ impl From<Infallible> for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use Error::*;
-
-        match *self {
-            NonMinimalPush => f.write_str("non-minimal datapush"),
-            EarlyEndOfScript => f.write_str("unexpected end of script"),
-            NumericOverflow =>
+        match self {
+            Self::NonMinimalPush => f.write_str("non-minimal datapush"),
+            Self::EarlyEndOfScript => f.write_str("unexpected end of script"),
+            Self::NumericOverflow =>
                 f.write_str("numeric overflow (number on stack larger than 4 bytes)"),
-            UnknownSpentOutput(ref point) => write!(f, "unknown spent output: {}", point),
-            Serialization =>
+            Self::UnknownSpentOutput(ref point) => write!(f, "unknown spent output: {}", point),
+            Self::Serialization =>
                 f.write_str("can not serialize the spending transaction in Transaction::verify()"),
         }
     }
@@ -332,14 +331,12 @@ impl fmt::Display for Error {
 #[cfg(feature = "std")]
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        use Error::*;
-
-        match *self {
-            NonMinimalPush
-            | EarlyEndOfScript
-            | NumericOverflow
-            | UnknownSpentOutput(_)
-            | Serialization => None,
+        match self {
+            Self::NonMinimalPush
+            | Self::EarlyEndOfScript
+            | Self::NumericOverflow
+            | Self::UnknownSpentOutput(_)
+            | Self::Serialization => None,
         }
     }
 }

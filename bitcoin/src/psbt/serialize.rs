@@ -305,12 +305,12 @@ impl Serialize for taproot::Signature {
 
 impl Deserialize for taproot::Signature {
     fn deserialize(bytes: &[u8]) -> Result<Self, Error> {
-        use taproot::SigFromSliceError::*;
+        use crypto::taproot::SigFromSliceError;
 
         Self::from_slice(bytes).map_err(|e| match e {
-            SighashType(err) => Error::NonStandardSighashType(err.0),
-            InvalidSignatureSize(_) => Error::InvalidTaprootSignature(e),
-            Secp256k1(..) => Error::InvalidTaprootSignature(e),
+            SigFromSliceError::SighashType(err) => Error::NonStandardSighashType(err.0),
+            SigFromSliceError::InvalidSignatureSize(_) => Error::InvalidTaprootSignature(e),
+            SigFromSliceError::Secp256k1(..) => Error::InvalidTaprootSignature(e),
             _ => unreachable!("in crypto v0.1.0"),
         })
     }

@@ -29,7 +29,7 @@ arbitrary = ["dep:arbitrary", "crypto/arbitrary", "units/arbitrary", "primitives
 base58 = { package = "base58ck", path = "../base58", version = "0.2.0", default-features = false, features = ["alloc"] }
 bech32 = { version = "0.11.0", default-features = false, features = ["alloc"] }
 crypto = { package = "bitcoin-crypto", path = "../crypto", version = "0.1.0", default-features = false, features = ["alloc"] }
-hashes = { package = "bitcoin_hashes", path = "../hashes", version = "0.17.0", default-features = false, features = ["alloc", "hex"] }
+hashes = { package = "bitcoin_hashes", path = "../hashes", version = "0.18.0", default-features = false, features = ["alloc", "hex"] }
 hex = { package = "hex-conservative", version = "0.3.0", default-features = false, features = ["alloc"] }
 internals = { package = "bitcoin-internals", path = "../internals", version = "0.4.1", features = ["alloc", "hex"] }
 io = { package = "bitcoin-io", path = "../io", version = "0.2.0", default-features = false, features = ["alloc", "hashes"] }
@@ -65,27 +65,27 @@ required-features = ["std", "bitcoinconsensus"]
 
 [[example]]
 name = "ecdsa-psbt-simple"
-required-features = ["rand-std"]
+required-features = ["rand", "std"]
 
 [[example]]
 name = "create-p2wpkh-address"
-required-features = ["rand-std"]
+required-features = ["rand", "std"]
 
 [[example]]
 name = "sign-tx-segwit-v0"
-required-features = ["rand-std"]
+required-features = ["rand", "std"]
 
 [[example]]
 name = "sign-tx-taproot"
-required-features = ["rand-std"]
+required-features = ["rand", "std"]
 
 [[example]]
 name = "taproot-psbt"
-required-features = ["rand-std", "bitcoinconsensus"]
+required-features = ["rand", "std", "bitcoinconsensus"]
 
 [[example]]
 name = "taproot-psbt-simple"
-required-features = ["rand-std"]
+required-features = ["rand", "std"]
 
 [[example]]
 name = "sighash"

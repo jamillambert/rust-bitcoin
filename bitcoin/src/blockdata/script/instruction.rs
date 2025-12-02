@@ -49,7 +49,7 @@ impl Instruction<'_> {
                 }
             }
             Instruction::PushBytes(bytes) =>
-                super::read_scriptint_non_minimal(bytes.as_bytes()).ok(),
+                super::read_scriptint_non_minimal(bytes.as_bytes()).ok().map(i64::from),
         }
     }
 
@@ -78,7 +78,7 @@ impl Instruction<'_> {
                     _ => None,
                 }
             }
-            Instruction::PushBytes(bytes) => bytes.read_scriptint().ok(),
+            Instruction::PushBytes(bytes) => bytes.read_cltv_scriptint().ok(),
         }
     }
 }

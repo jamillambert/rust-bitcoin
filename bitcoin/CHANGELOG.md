@@ -2,8 +2,8 @@
 
 This series of beta releases is meant for two things:
 
-1. To allow testing of the upcoming `bitcoin v0.33.0`. Its been a long
-   time since we released and there is a lot in this.
+- Use MAX_MONEY in serde regression test [#3950](https://github.com/rust-bitcoin/rust-bitcoin/pull/3950)
+- Remove rand-std feature. Just use rand (but you probably need std enabled as well). [#5293](https://github.com/rust-bitcoin/rust-bitcoin/pull/5293)
 
 2. To allow testing of the `1.0.0` RC releases of:
 
@@ -42,7 +42,7 @@ The `serde` serialization for `Psbt` has changed.
 ## Changes
 
 - Deprecate unchecked `amount` ops [#3759](https://github.com/rust-bitcoin/rust-bitcoin/pull/3759)
-- Change paramater type used for whole bitcoin amounts [#3744](https://github.com/rust-bitcoin/rust-bitcoin/pull/3744)
+- Change parameter type used for whole bitcoin amounts [#3744](https://github.com/rust-bitcoin/rust-bitcoin/pull/3744)
 - Add `Weight::to_kwu_ceil` [#3740](https://github.com/rust-bitcoin/rust-bitcoin/pull/3740)
 - Remove `Weight::from_wu_usize` function [#3738](https://github.com/rust-bitcoin/rust-bitcoin/pull/3738)
 - Move script hash types to `primitives` [#3734](https://github.com/rust-bitcoin/rust-bitcoin/pull/3734)

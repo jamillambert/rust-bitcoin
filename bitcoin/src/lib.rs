@@ -17,7 +17,6 @@
 //! * `bitcoinconsensus` (dependency) - enables validating scripts and transactions.
 //! * `default` - enables `std` and `secp-recovery`.
 //! * `rand` (transitive dependency) - makes it more convenient to generate random values.
-//! * `rand-std` - same as `rand` but also enables `std` here and in `secp256k1`.
 //! * `serde` (dependency) - implements `serde`-based serialization and deserialization.
 //! * `secp-lowmemory` - optimizations for low-memory devices.
 //! * `secp-recovery` - enables calculating public key from a signature and message.
@@ -153,8 +152,7 @@ pub use primitives::{
         RedeemScript, RedeemScriptBuf, ScriptPubKey, ScriptPubKeyBuf, ScriptSig, ScriptSigBuf,
         TapScript, TapScriptBuf, WitnessProgram, WitnessScript, WitnessScriptBuf, WitnessVersion,
     },
-    sequence::{self, Sequence}, // No `sequence` module outside of `primitives`.
-    transaction::{OutPoint, Transaction, TxIn, TxOut, Txid, Version as TransactionVersion, Wtxid},
+    transaction::{Ntxid, OutPoint, Transaction, TxIn, TxOut, Txid, Version as TransactionVersion, Wtxid},
     witness::Witness,
 };
 #[doc(inline)]
@@ -163,7 +161,9 @@ pub use units::{
     block::{BlockHeight, BlockHeightInterval, BlockMtp, BlockMtpInterval},
     fee_rate::FeeRate,
     parse_int,
-    time::{self, BlockTime},
+    result::{self, NumOpResult},
+    sequence::{self, Sequence},
+    time::{self, BlockTime, BlockTimeDecoder, BlockTimeDecoderError},
     weight::Weight,
 };
 
