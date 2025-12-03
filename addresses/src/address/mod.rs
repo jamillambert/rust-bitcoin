@@ -1019,6 +1019,7 @@ fn segwit_redeem_hash(pubkey_hash: PubkeyHash) -> hash160::Hash {
     hash160::Hash::from_engine(sha_engine)
 }
 
+// FIXME(tcharding): We likely want opcodes.rs to be 'fixed' and these to live in `primitives`.
 const OP_DUP: u8 = 0x76;
 const OP_HASH160: u8 = 0xa9;
 const OP_EQUAL: u8 = 0x87;
@@ -1027,6 +1028,12 @@ const OP_CHECKSIG: u8 = 0xac;
 const OP_PUSHNUM_BASE: u8 = 0x50;
 const P2PKH_SCRIPT_LEN: usize = 25;
 const P2SH_SCRIPT_LEN: usize = 23;
+
+// FIXME:(tcharding) these exist because the `script::builder` is in `rust-bitcoin`
+// as well as `ScriptPubKeyBufExt` which defines the equivalent e.g. `new_p2pkh()`.
+//
+// Vibe coded by Jamil, will need checking by a human
+// (see `bitcoin/src/blockdate/script/owned.rs`).
 
 fn build_p2pkh_script(hash: &PubkeyHash) -> ScriptPubKeyBuf {
     let mut bytes = Vec::with_capacity(P2PKH_SCRIPT_LEN);
