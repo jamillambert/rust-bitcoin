@@ -5,14 +5,13 @@
 #![cfg(feature = "alloc")]
 #![cfg(feature = "encoding")]
 
-use encoding::{encode_to_vec, Decodable as _, Decoder as _};
-
 use bitcoin_units::absolute::{LockTime, LockTimeDecoder};
 use bitcoin_units::amount::AmountDecoder;
 use bitcoin_units::block::BlockHeightDecoder;
 use bitcoin_units::sequence::SequenceDecoder;
 use bitcoin_units::time::BlockTimeDecoder;
 use bitcoin_units::{Amount, BlockHeight, BlockTime, Sequence};
+use encoding::{encode_to_vec, Decodable as _, Decoder as _};
 
 /// Tests round-trip encoding/decoding for a list of values.
 ///
