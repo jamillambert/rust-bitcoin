@@ -95,7 +95,7 @@ pub struct Input {
     pub non_witness_utxo: Option<Transaction>,
     /// The transaction output this input spends from. Should only be
     /// `Option::Some` for inputs which spend SegWit outputs,
-    /// including [`RedeemScriptBuf`] embedded ones.
+    /// including P2SH embedded ones.
     pub witness_utxo: Option<TxOut>,
     /// A map from public keys to their corresponding signature as would be
     /// pushed to the stack from a scriptSig or witness for a non-Taproot inputs.
