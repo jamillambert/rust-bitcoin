@@ -1,6 +1,26 @@
 // SPDX-License-Identifier: CC0-1.0
 
-//! # Rust Bitcoin BIP-158 implementation.
+//! Compact Block Filters for Light Clients (BIP-0158)
+//!
+//! This module implements [BIP-0158] compact block filters, which allow light clients to
+//! efficiently determine whether a block is potentially relevant to their wallet without
+//! downloading the entire block.
+//!
+//! # Overview
+//!
+//! Compact block filters use Golomb-Rice coding to create a compact, probabilistic data
+//! structure that can test set membership. Each filter represents all the scriptPubKeys
+//! and outpoints spent in a block.
+//!
+//! # Examples
+//!
+//! ```
+//! # #[cfg(feature = "std")] {
+//! use bitcoin_bip158::BlockFilter;
+//! # }
+//! ```
+//!
+//! [BIP-0158]: <https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki>
 
 // Coding conventions.
 #![warn(missing_docs)]

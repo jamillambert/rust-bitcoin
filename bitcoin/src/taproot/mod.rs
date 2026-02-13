@@ -430,6 +430,29 @@ impl TaprootBuilder {
     /// example, [(3, S1), (2, S2), (5, S3)] would construct a [`TapTree`] that has optimal
     /// satisfaction weight when probability for S1 is 30%, S2 is 20% and S3 is 50%.
     ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bitcoin::taproot::TaprootBuilder;
+    /// # use bitcoin::script::TapScriptBuf;
+    /// # use bitcoin::secp256k1::XOnlyPublicKey;
+    /// # use core::str::FromStr;
+    /// // Create scripts with different satisfaction probabilities
+    /// let script1 = TapScriptBuf::new();  // 50% probability
+    /// let script2 = TapScriptBuf::new();  // 30% probability
+    /// let script3 = TapScriptBuf::new();  // 20% probability
+    ///
+    /// let script_weights = vec![
+    ///     (50, script1),
+    ///     (30, script2),
+    ///     (20, script3),
+    /// ];
+    ///
+    /// // Build an optimal Huffman tree
+    /// let builder = TaprootBuilder::with_huffman_tree(script_weights)
+    ///     .expect("valid tree construction");
+    /// ```
+    ///
     /// # Errors
     ///
     /// - When the optimal Huffman tree has a depth more than 128.
@@ -493,6 +516,20 @@ impl TaprootBuilder {
     /// The depth of the root node is 0.
     ///
     /// See [`TaprootBuilder::add_leaf_with_ver`] for adding a leaf with specific version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bitcoin::taproot::TaprootBuilder;
+    /// # use bitcoin::script::TapScriptBuf;
+    /// // Build a simple tree with two leaves at depth 1
+    /// let script1 = TapScriptBuf::new();
+    /// let script2 = TapScriptBuf::new();
+    ///
+    /// let builder = TaprootBuilder::new()
+    ///     .add_leaf(1, script1).expect("valid leaf")
+    ///     .add_leaf(1, script2).expect("valid leaf");
+    /// ```
     ///
     /// # Errors
     ///
