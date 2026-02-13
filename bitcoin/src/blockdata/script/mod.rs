@@ -99,6 +99,18 @@ impl_asref_push_bytes!(ScriptHash, WScriptHash);
 /// should not be used as one. It is a special template defined in BIP-0143 which is used
 /// in place of a witness script for purposes of sighash computation.
 ///
+/// # Examples
+///
+/// ```
+/// # use bitcoin::blockdata::script::p2wpkh_script_code;
+/// # use bitcoin::key::WPubkeyHash;
+/// # use core::str::FromStr;
+/// // Generate script code for P2WPKH signature verification
+/// let wpkh = WPubkeyHash::from_str("751e76e8199196d454941c45d1b3a323f1433bd6").unwrap();
+/// let script_code = p2wpkh_script_code(wpkh);
+/// // This generates: OP_DUP OP_HASH160 <wpkh> OP_EQUALVERIFY OP_CHECKSIG
+/// ```
+///
 /// [BIP-0143]: <https://github.com/bitcoin/bips/blob/99701f68a88ce33b2d0838eb84e115cef505b4c2/bip-0143.mediawiki>
 pub fn p2wpkh_script_code(wpkh: WPubkeyHash) -> WitnessScriptBuf {
     Builder::new()
@@ -155,6 +167,19 @@ pub fn write_scriptint(out: &mut [u8; 8], n: i64) -> usize {
 ///
 /// See [`push_bytes::PushBytes::read_scriptint`] for a description of some subtleties of
 /// this function.
+///
+/// # Examples
+///
+/// ```
+/// # use bitcoin::blockdata::script::read_scriptint_non_minimal;
+/// // Read a minimally-encoded integer
+/// let minimal = vec![0x02];
+/// assert_eq!(read_scriptint_non_minimal(&minimal).unwrap(), 2);
+///
+/// // Read a non-minimally encoded integer (which would fail with read_scriptint)
+/// let non_minimal = vec![0x02, 0x00];
+/// assert_eq!(read_scriptint_non_minimal(&non_minimal).unwrap(), 2);
+/// ```
 pub fn read_scriptint_non_minimal(v: &[u8]) -> Result<i32, ScriptIntError> {
     if v.is_empty() {
         return Ok(0);
@@ -181,6 +206,23 @@ fn scriptint_parse(v: &[u8]) -> i64 {
 ///
 /// This is like "`read_scriptint` then map 0 to false and everything
 /// else as true", except that the overflow rules don't apply.
+///
+/// # Examples
+///
+/// ```
+/// # use bitcoin::blockdata::script::read_scriptbool;
+/// // Empty or all zeros is false
+/// assert_eq!(read_scriptbool(&[]), false);
+/// assert_eq!(read_scriptbool(&[0x00]), false);
+/// assert_eq!(read_scriptbool(&[0x00, 0x00]), false);
+///
+/// // Non-zero values are true
+/// assert_eq!(read_scriptbool(&[0x01]), true);
+/// assert_eq!(read_scriptbool(&[0x00, 0x01]), true);
+///
+/// // Negative zero (0x80) is false
+/// assert_eq!(read_scriptbool(&[0x80]), false);
+/// ```
 #[inline]
 pub fn read_scriptbool(v: &[u8]) -> bool {
     match v.split_last() {

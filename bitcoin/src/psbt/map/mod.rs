@@ -1,5 +1,20 @@
 // SPDX-License-Identifier: CC0-1.0
 
+//! PSBT key-value map implementations.
+//!
+//! This module contains the key-value map structures used in Partially Signed Bitcoin
+//! Transactions (PSBTs) as defined in [BIP-0174].
+//!
+//! A PSBT is composed of three types of maps:
+//! - Global map: Contains transaction-wide data
+//! - Input maps: One per input, contains input-specific signing data
+//! - Output maps: One per output, contains output-specific data
+//!
+//! Each map follows the serialization format: `<keypair>* 0x00`, where the 0x00 byte
+//! serves as a separator.
+//!
+//! [BIP-0174]: <https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki>
+
 mod global;
 mod input;
 mod output;

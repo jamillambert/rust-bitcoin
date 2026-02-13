@@ -1,4 +1,14 @@
-//! Contains `TaprootMerkleBranchBuf` and its associated types.
+//! Taproot Merkle branch data structures.
+//!
+//! This module provides types for working with Merkle branches in Taproot script trees.
+//! A Merkle branch proves that a leaf script is part of a Taproot script tree by providing
+//! the hash path from the leaf to the root.
+//!
+//! The main types are:
+//! - [`TaprootMerkleBranch`]: A borrowed view of a Merkle branch
+//! - [`TaprootMerkleBranchBuf`]: An owned Merkle branch with a fixed-size buffer
+//!
+//! These types are used when constructing and verifying Taproot script-path spends.
 
 mod borrowed;
 mod buf;

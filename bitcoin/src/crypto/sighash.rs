@@ -140,6 +140,27 @@ struct TaprootCache {
 
 /// Contains outputs of previous transactions. In the case [`TapSighashType`] variant is
 /// `SIGHASH_ANYONECANPAY`, [`Prevouts::One`] may be used.
+///
+/// # Examples
+///
+/// ```
+/// # use bitcoin::sighash::Prevouts;
+/// # use bitcoin::{TxOut, Amount};
+/// # use bitcoin::script::ScriptBuf;
+/// // When signing with SIGHASH_ANYONECANPAY, only provide the current input's prevout
+/// let prevout = TxOut {
+///     amount: Amount::from_sat(50_000).unwrap(),
+///     script_pubkey: ScriptBuf::new(),
+/// };
+/// let prevouts_one = Prevouts::One(0, &prevout);
+///
+/// // When signing with standard sighash types, provide all prevouts
+/// let prevouts = vec![
+///     TxOut { amount: Amount::from_sat(50_000).unwrap(), script_pubkey: ScriptBuf::new() },
+///     TxOut { amount: Amount::from_sat(100_000).unwrap(), script_pubkey: ScriptBuf::new() },
+/// ];
+/// let prevouts_all = Prevouts::All(&prevouts);
+/// ```
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum Prevouts<'u, T>
 where
@@ -328,10 +349,33 @@ impl std::error::Error for PrevoutsIndexError {
 
 impl<'s> ScriptPath<'s> {
     /// Constructs a new `ScriptPath` structure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bitcoin::sighash::ScriptPath;
+    /// # use bitcoin::script::TapScriptBuf;
+    /// # use bitcoin::taproot::LeafVersion;
+    /// // Create a TapScript from a script buffer
+    /// let tap_script = TapScriptBuf::new();
+    /// let leaf_version = LeafVersion::TapScript;
+    /// let script_path = ScriptPath::new(&tap_script, leaf_version);
+    /// ```
     pub fn new(script: &'s TapScript, leaf_version: LeafVersion) -> Self {
         ScriptPath { script, leaf_version }
     }
     /// Constructs a new `ScriptPath` structure using default leaf version value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bitcoin::sighash::ScriptPath;
+    /// # use bitcoin::script::TapScriptBuf;
+    /// // Create a TapScript from a script buffer
+    /// let tap_script = TapScriptBuf::new();
+    /// // Uses LeafVersion::TapScript by default
+    /// let script_path = ScriptPath::with_defaults(&tap_script);
+    /// ```
     pub fn with_defaults(script: &'s TapScript) -> Self {
         Self::new(script, LeafVersion::TapScript)
     }
@@ -445,6 +489,20 @@ impl EcdsaSighashType {
     /// `EcdsaSighashType::from_consensus(n) as u32 != n` for non-standard values of `n`. While
     /// verifying signatures, the user should retain the `n` and use it to compute the signature hash
     /// message.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bitcoin::EcdsaSighashType;
+    /// // Standard SIGHASH_ALL
+    /// let sighash = EcdsaSighashType::from_consensus(0x01);
+    /// assert_eq!(sighash, EcdsaSighashType::All);
+    ///
+    /// // Non-standard value with ANYONECANPAY bit set - note the non-roundtrip behavior
+    /// let sighash = EcdsaSighashType::from_consensus(0xFF);
+    /// assert_eq!(sighash, EcdsaSighashType::AllPlusAnyoneCanPay);
+    /// assert_ne!(sighash as u32, 0xFF); // Does not roundtrip!
+    /// ```
     pub fn from_consensus(n: u32) -> Self {
         use EcdsaSighashType::*;
 
@@ -525,6 +583,22 @@ impl TapSighashType {
     }
 
     /// Constructs a new [`TapSighashType`] from a raw `u8`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bitcoin::TapSighashType;
+    /// // Parse a default sighash type (0x00)
+    /// let sighash = TapSighashType::from_consensus_u8(0x00).expect("valid sighash");
+    /// assert_eq!(sighash, TapSighashType::Default);
+    ///
+    /// // Parse SIGHASH_ALL (0x01)
+    /// let sighash = TapSighashType::from_consensus_u8(0x01).expect("valid sighash");
+    /// assert_eq!(sighash, TapSighashType::All);
+    ///
+    /// // Invalid sighash type
+    /// assert!(TapSighashType::from_consensus_u8(0xFF).is_err());
+    /// ```
     pub fn from_consensus_u8(sighash_type: u8) -> Result<Self, InvalidSighashTypeError> {
         use TapSighashType::*;
 
