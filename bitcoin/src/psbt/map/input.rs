@@ -66,6 +66,27 @@ const PSBT_IN_PROPRIETARY: u64 = 0xFC;
 
 /// A key-value map for an input of the corresponding index in the unsigned
 /// transaction.
+///
+/// This structure contains all the metadata needed to sign a transaction input,
+/// including prevout information, partial signatures, derivation paths, and scripts.
+///
+/// # Examples
+///
+/// Creating a PSBT input for a P2WPKH transaction:
+///
+/// ```
+/// # use bitcoin::psbt::Input;
+/// # use bitcoin::{TxOut, Amount};
+/// # use bitcoin::script::ScriptBuf;
+/// // Create a basic input with witness UTXO information
+/// let mut input = Input::default();
+///
+/// // Set the witness UTXO (required for SegWit inputs)
+/// input.witness_utxo = Some(TxOut {
+///     amount: Amount::from_sat(100_000).unwrap(),
+///     script_pubkey: ScriptBuf::new(),
+/// });
+/// ```
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash)]
 pub struct Input {
     /// The non-witness transaction this input spends from. Should only be

@@ -1,10 +1,26 @@
 // SPDX-License-Identifier: CC0-1.0
 
-//! Bitcoin network.
+//! Bitcoin Network Types
 //!
 //! The term "network" is overloaded, here [`Network`] refers to the specific
-//! Bitcoin network we are operating on e.g., signet, regtest. The terms
-//! "network" and "chain" are often used interchangeably for this concept.
+//! Bitcoin network we are operating on e.g., mainnet, testnet, signet, regtest.
+//! The terms "network" and "chain" are often used interchangeably for this concept.
+//!
+//! # Examples
+//!
+//! ```
+//! use bitcoin_network_kind::{Network, NetworkKind};
+//!
+//! // Convert network to kind and check if it's mainnet
+//! let network = Network::Bitcoin;
+//! let network_kind: NetworkKind = network.into();
+//! assert!(network_kind.is_mainnet());
+//! assert_eq!(network_kind, NetworkKind::Main);
+//!
+//! // Testnet networks are test kind
+//! let testnet: NetworkKind = Network::Signet.into();
+//! assert_eq!(testnet, NetworkKind::Test);
+//! ```
 
 #![no_std]
 // Coding conventions.
