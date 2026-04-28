@@ -11,7 +11,7 @@
 
 [package]
 edition = "2021"
-rust-version = "1.74.0"
+rust-version = "1.56.1"
 name = "bitcoin-internals"
 version = "0.5.0"
 authors = [
@@ -47,11 +47,11 @@ rustdoc-args = [
 ]
 
 [features]
-alloc = ["hex?/alloc"]
+alloc = ["hex/alloc"]
 default = []
 std = [
     "alloc",
-    "hex?/std",
+    "hex/std",
 ]
 test-serde = [
     "serde",
