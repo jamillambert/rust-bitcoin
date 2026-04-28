@@ -12,7 +12,7 @@ path = "bitcoin"
 path = "hashes"
 
 [patch.crates-io.bitcoin-internals]
-path = "internals"
+path = "internals-0.5.0"
 
 [patch.crates-io.bitcoin-io]
 path = "io"
