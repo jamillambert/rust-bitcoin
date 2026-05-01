@@ -6,6 +6,9 @@ REPO_DIR=$(git rev-parse --show-toplevel)
 # shellcheck source=./fuzz-util.sh
 source "$REPO_DIR/fuzz/fuzz-util.sh"
 
+HONGGFUZZ_VERSION=$(grep '^honggfuzz = ' "$REPO_DIR/fuzz/Cargo.toml" | sed -E 's/.*version = "([^"]+)".*/\1/')
+[ -n "$HONGGFUZZ_VERSION" ] || { echo "ERROR: could not parse honggfuzz version from fuzz/Cargo.toml"; exit 1; }
+
 # Check that input files are correct Windows file names
 checkWindowsFiles
 
@@ -19,7 +22,7 @@ cargo --version
 rustc --version
 
 # Testing
-cargo install --force honggfuzz --no-default-features
+cargo install --force honggfuzz --version "$HONGGFUZZ_VERSION" --no-default-features
 for targetFile in $targetFiles; do
   targetName=$(targetFileToName "$targetFile")
   echo "Fuzzing target $targetName ($targetFile)"
