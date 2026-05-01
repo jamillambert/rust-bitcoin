@@ -464,7 +464,7 @@ impl Sequence {
     /// Will return an error if the input cannot be encoded in 16 bits.
     #[inline]
     pub fn from_seconds_ceil(seconds: u32) -> Result<Self, TimeOverflowError> {
-        if let Ok(interval) = u16::try_from((seconds + 511) / 512) {
+        if let Ok(interval) = u16::try_from(seconds.div_ceil(512)) {
             Ok(Sequence::from_512_second_intervals(interval))
         } else {
             Err(TimeOverflowError::new(seconds))
@@ -2581,6 +2581,11 @@ mod tests {
     fn sequence_debug_output() {
         let seq = Sequence::from_seconds_floor(1000);
         println!("{:?}", seq)
+    }
+
+    #[test]
+    fn sequence_from_seconds_ceil_overflow() {
+        assert!(Sequence::from_seconds_ceil(u32::MAX).is_err());
     }
 
     #[test]
