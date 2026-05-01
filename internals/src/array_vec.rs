@@ -57,6 +57,7 @@ mod safety_boundary {
         // from_raw_parts is const-unstable until 1.64
         cond_const! {
             /// Returns a reference to the underlying data.
+            #[allow(unknown_lints, clippy::incompatible_msrv)]
             pub const(in rust_v_1_64 = "1.64") fn as_slice(&self) -> &[T] {
                 let ptr = &self.data as *const _ as *const T;
                 unsafe { core::slice::from_raw_parts(ptr, self.len) }
@@ -88,8 +89,11 @@ mod safety_boundary {
             let new_len = self.len.checked_add(slice.len()).expect("integer/buffer overflow");
             assert!(new_len <= CAP, "buffer overflow");
             // SAFETY: MaybeUninit<T> has the same layout as T
-            let slice = unsafe { &*(slice as *const _ as *const [MaybeUninit<T>]) };
-            self.data[self.len..].copy_from_slice(slice);
+            let slice = unsafe {
+                let ptr = slice.as_ptr();
+                core::slice::from_raw_parts(ptr.cast::<MaybeUninit<T>>(), slice.len())
+            };
+            self.data[self.len..new_len].copy_from_slice(slice);
             self.len = new_len;
         }
     }
@@ -177,6 +181,15 @@ mod tests {
         av.push(42);
         assert_eq!(av.len(), 1);
         assert_eq!(av, [42]);
+    }
+
+    #[test]
+    fn extend_from_slice_partial_fill() {
+        let mut av = ArrayVec::<_, 4>::new();
+        av.extend_from_slice(&[1, 2]);
+        av.extend_from_slice(&[3]);
+
+        assert_eq!(av, [1, 2, 3]);
     }
 
     #[test]
