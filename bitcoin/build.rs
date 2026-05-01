@@ -1,4 +1,4 @@
-const MSRV_MINOR: u64 = 56;
+const MSRV_MINOR: u64 = 74;
 
 fn main() {
     let rustc = std::env::var_os("RUSTC");
