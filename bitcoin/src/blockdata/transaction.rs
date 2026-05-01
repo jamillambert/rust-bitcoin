@@ -2585,6 +2585,13 @@ mod tests {
 
     #[test]
     fn sequence_from_seconds_ceil_overflow() {
+        let max_encodeable_seconds = u16::MAX as u32 * 512;
+
+        assert_eq!(
+            Sequence::from_seconds_ceil(max_encodeable_seconds),
+            Ok(Sequence::from_512_second_intervals(u16::MAX))
+        );
+        assert!(Sequence::from_seconds_ceil(max_encodeable_seconds + 1).is_err());
         assert!(Sequence::from_seconds_ceil(u32::MAX).is_err());
     }
 

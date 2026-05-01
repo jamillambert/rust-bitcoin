@@ -185,8 +185,12 @@ impl<'a> Arbitrary<'a> for Time {
 mod tests {
     use super::Time;
 
+    const MAX_ENCODEABLE_SECONDS: u32 = u16::MAX as u32 * 512;
+
     #[test]
     fn time_from_seconds_ceil_overflow() {
+        assert_eq!(Time::from_seconds_ceil(MAX_ENCODEABLE_SECONDS), Ok(Time::MAX));
+        assert!(Time::from_seconds_ceil(MAX_ENCODEABLE_SECONDS + 1).is_err());
         assert!(Time::from_seconds_ceil(u32::MAX).is_err());
     }
 }
