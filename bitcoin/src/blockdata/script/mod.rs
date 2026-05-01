@@ -70,9 +70,7 @@ use io::{Read, Write};
 use crate::blockdata::opcodes::all::*;
 use crate::blockdata::opcodes::{self, Opcode};
 use crate::consensus::{encode, Decodable, Encodable};
-use crate::internal_macros::impl_asref_push_bytes;
-#[cfg(rust_v_1_65)]
-use crate::internal_macros::impl_encoding_from_consensus;
+use crate::internal_macros::{impl_asref_push_bytes, impl_encoding_from_consensus};
 use crate::prelude::*;
 use crate::OutPoint;
 

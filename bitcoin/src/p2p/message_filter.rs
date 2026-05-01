@@ -7,9 +7,7 @@
 
 use crate::bip158::{FilterHash, FilterHeader};
 use crate::blockdata::block::BlockHash;
-use crate::internal_macros::impl_consensus_encoding;
-#[cfg(rust_v_1_65)]
-use crate::internal_macros::impl_encoding_from_consensus;
+use crate::internal_macros::{impl_consensus_encoding, impl_encoding_from_consensus};
 
 /// getcfilters message
 #[derive(PartialEq, Eq, Clone, Debug)]

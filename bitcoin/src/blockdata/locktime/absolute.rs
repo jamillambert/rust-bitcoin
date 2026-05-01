@@ -21,7 +21,6 @@ use units::parse::{self, ParseIntError};
 use crate::absolute;
 use crate::consensus::encode::{self, Decodable, Encodable};
 use crate::error::{ContainsPrefixError, MissingPrefixError, PrefixedHexError, UnprefixedHexError};
-#[cfg(rust_v_1_65)]
 use crate::internal_macros::impl_encoding_from_consensus;
 use crate::prelude::{Box, String};
 

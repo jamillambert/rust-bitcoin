@@ -15,7 +15,6 @@ use io::{Read, Write};
 use crate::consensus::encode::{Error, MAX_VEC_SIZE};
 use crate::consensus::{Decodable, Encodable, WriteExt};
 use crate::crypto::ecdsa;
-#[cfg(rust_v_1_65)]
 use crate::internal_macros::impl_encoding_from_consensus;
 use crate::prelude::*;
 use crate::taproot::{

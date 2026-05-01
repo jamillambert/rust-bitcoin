@@ -10,9 +10,7 @@ use hashes::sha256d;
 use io::{Read, Write};
 
 use crate::consensus::{encode, Decodable, Encodable, ReadExt};
-use crate::internal_macros::impl_consensus_encoding;
-#[cfg(rust_v_1_65)]
-use crate::internal_macros::impl_encoding_from_consensus;
+use crate::internal_macros::{impl_consensus_encoding, impl_encoding_from_consensus};
 use crate::p2p;
 use crate::p2p::address::Address;
 use crate::p2p::ServiceFlags;

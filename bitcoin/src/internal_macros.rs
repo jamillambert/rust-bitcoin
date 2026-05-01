@@ -204,7 +204,7 @@ macro_rules! impl_hashencode {
             }
         }
 
-        #[cfg(rust_v_1_65)]
+        #[cfg(all(feature = "encoding", rust_v_1_65))]
         impl $crate::encoding::Encodable for $hashtype {
             type Encoder<'e> = $crate::consensus::encode::ConsensusEncoderBridge;
 
@@ -213,7 +213,7 @@ macro_rules! impl_hashencode {
             }
         }
 
-        #[cfg(rust_v_1_65)]
+        #[cfg(all(feature = "encoding", rust_v_1_65))]
         impl $crate::encoding::Decodable for $hashtype {
             type Decoder = $crate::consensus::encode::ConsensusDecoderBridge<Self>;
 
@@ -225,9 +225,10 @@ macro_rules! impl_hashencode {
 }
 pub(crate) use impl_hashencode;
 
-#[cfg_attr(not(rust_v_1_65), allow(unused_macros))]
+#[allow(unused_macros)]
 macro_rules! impl_encoding_from_consensus {
     ($thing:ty) => {
+        #[cfg(all(feature = "encoding", rust_v_1_65))]
         impl $crate::encoding::Encodable for $thing {
             type Encoder<'e> = $crate::consensus::encode::ConsensusEncoderBridge;
 
@@ -238,6 +239,7 @@ macro_rules! impl_encoding_from_consensus {
             }
         }
 
+        #[cfg(all(feature = "encoding", rust_v_1_65))]
         impl $crate::encoding::Decodable for $thing {
             type Decoder = $crate::consensus::encode::ConsensusDecoderBridge<Self>;
 
@@ -247,7 +249,6 @@ macro_rules! impl_encoding_from_consensus {
         }
     };
 }
-#[cfg(rust_v_1_65)]
 pub(crate) use impl_encoding_from_consensus;
 
 #[rustfmt::skip]

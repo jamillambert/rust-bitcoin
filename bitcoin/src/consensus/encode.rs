@@ -192,20 +192,20 @@ pub fn deserialize_partial<T: Decodable>(data: &[u8]) -> Result<(T, usize), Erro
 /// Bridge encoder for the sans-I/O encoding trait.
 ///
 /// This type appears in public associated types and is therefore part of the crate's public API.
-#[cfg(rust_v_1_65)]
+#[cfg(all(feature = "encoding", rust_v_1_65))]
 #[derive(Debug, Clone)]
 pub struct ConsensusEncoderBridge {
     bytes: Vec<u8>,
     done: bool,
 }
 
-#[cfg(rust_v_1_65)]
+#[cfg(all(feature = "encoding", rust_v_1_65))]
 impl ConsensusEncoderBridge {
     /// Creates a bridge encoder from already-serialized bytes.
     pub fn new(bytes: Vec<u8>) -> Self { Self { bytes, done: false } }
 }
 
-#[cfg(rust_v_1_65)]
+#[cfg(all(feature = "encoding", rust_v_1_65))]
 impl crate::encoding::Encoder for ConsensusEncoderBridge {
     fn current_chunk(&self) -> &[u8] {
         if self.done {
@@ -224,7 +224,7 @@ impl crate::encoding::Encoder for ConsensusEncoderBridge {
 /// Bridge decoder for the sans-I/O decoding trait.
 ///
 /// This type appears in public associated types and is therefore part of the crate's public API.
-#[cfg(rust_v_1_65)]
+#[cfg(all(feature = "encoding", rust_v_1_65))]
 #[derive(Debug, Clone)]
 pub struct ConsensusDecoderBridge<T> {
     bytes: Vec<u8>,
@@ -232,18 +232,18 @@ pub struct ConsensusDecoderBridge<T> {
     result: Option<T>,
 }
 
-#[cfg(rust_v_1_65)]
+#[cfg(all(feature = "encoding", rust_v_1_65))]
 impl<T> ConsensusDecoderBridge<T> {
     /// Creates a new bridge decoder.
     pub fn new() -> Self { Self { bytes: Vec::new(), done: false, result: None } }
 }
 
-#[cfg(rust_v_1_65)]
+#[cfg(all(feature = "encoding", rust_v_1_65))]
 impl<T> Default for ConsensusDecoderBridge<T> {
     fn default() -> Self { Self::new() }
 }
 
-#[cfg(rust_v_1_65)]
+#[cfg(all(feature = "encoding", rust_v_1_65))]
 impl<T: Decodable> crate::encoding::Decoder for ConsensusDecoderBridge<T> {
     type Output = T;
     type Error = Error;
@@ -1204,7 +1204,7 @@ mod tests {
         assert_eq!(serialize(&cd), vec![5, 0, 0, 0, 162, 107, 175, 90, 1, 2, 3, 4, 5]);
     }
 
-    #[cfg(rust_v_1_65)]
+    #[cfg(all(feature = "encoding", rust_v_1_65))]
     #[test]
     fn consensus_decoder_bridge_roundtrips_transaction() {
         let tx_bytes = hex!("0100000001a15d57094aa7a21a28cb20b59aab8fc7d1149a3bdbcddba9c622e4f5f6a99ece010000006c493046022100f93bb0e7d8db7bd46e40132d1f8242026e045f03a0efe71bbb8e3f475e970d790221009337cd7f1f929f00cc6ff01f03729b069a7c21b59b1736ddfee5db5946c5da8c0121033b9b137ee87d5a812d6f506efdd37f0affa7ffc310711c06c7f3e097c9447c52ffffffff0100e1f505000000001976a9140389035a9225b3839e2bbf32d826a1e222031fd888ac00000000");
@@ -1213,7 +1213,7 @@ mod tests {
         assert_eq!(crate::encoding::encode_to_vec(&tx), tx_bytes);
     }
 
-    #[cfg(rust_v_1_65)]
+    #[cfg(all(feature = "encoding", rust_v_1_65))]
     #[test]
     fn consensus_decoder_bridge_returns_unconsumed_bytes() {
         let tx_bytes = hex!("0100000001a15d57094aa7a21a28cb20b59aab8fc7d1149a3bdbcddba9c622e4f5f6a99ece010000006c493046022100f93bb0e7d8db7bd46e40132d1f8242026e045f03a0efe71bbb8e3f475e970d790221009337cd7f1f929f00cc6ff01f03729b069a7c21b59b1736ddfee5db5946c5da8c0121033b9b137ee87d5a812d6f506efdd37f0affa7ffc310711c06c7f3e097c9447c52ffffffff0100e1f505000000001976a9140389035a9225b3839e2bbf32d826a1e222031fd888ac00000000");
@@ -1227,7 +1227,7 @@ mod tests {
         assert_eq!(slice, &[0xaa, 0xbb, 0xcc]);
     }
 
-    #[cfg(rust_v_1_65)]
+    #[cfg(all(feature = "encoding", rust_v_1_65))]
     #[test]
     fn consensus_decoder_bridge_supports_incremental_input() {
         let tx_bytes = hex!("0100000001a15d57094aa7a21a28cb20b59aab8fc7d1149a3bdbcddba9c622e4f5f6a99ece010000006c493046022100f93bb0e7d8db7bd46e40132d1f8242026e045f03a0efe71bbb8e3f475e970d790221009337cd7f1f929f00cc6ff01f03729b069a7c21b59b1736ddfee5db5946c5da8c0121033b9b137ee87d5a812d6f506efdd37f0affa7ffc310711c06c7f3e097c9447c52ffffffff0100e1f505000000001976a9140389035a9225b3839e2bbf32d826a1e222031fd888ac00000000");

@@ -5,9 +5,7 @@
 //!
 
 use crate::bip152;
-use crate::internal_macros::impl_consensus_encoding;
-#[cfg(rust_v_1_65)]
-use crate::internal_macros::impl_encoding_from_consensus;
+use crate::internal_macros::{impl_consensus_encoding, impl_encoding_from_consensus};
 
 /// sendcmpct message
 #[derive(PartialEq, Eq, Clone, Debug, Copy, PartialOrd, Ord, Hash)]
