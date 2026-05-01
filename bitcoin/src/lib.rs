@@ -69,8 +69,8 @@ pub extern crate bech32;
 pub extern crate hashes;
 
 /// Bitcoin consensus encoding sans-I/O primitives.
-#[cfg(rust_v_1_65)]
-pub extern crate encoding;
+#[cfg(all(feature = "encoding", rust_v_1_65))]
+pub extern crate encoding_dep as encoding;
 
 /// Re-export the `hex-conservative` crate.
 pub extern crate hex;

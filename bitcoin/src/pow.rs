@@ -22,7 +22,6 @@ use crate::consensus::Params;
 use crate::error::{
     ContainsPrefixError, MissingPrefixError, ParseIntError, PrefixedHexError, UnprefixedHexError,
 };
-#[cfg(rust_v_1_65)]
 use crate::internal_macros::impl_encoding_from_consensus;
 
 /// Implement traits and methods shared by `Target` and `Work`.

@@ -13,7 +13,6 @@ use io::{Read, Write};
 
 use crate::blockdata::{block, transaction};
 use crate::consensus::encode::{self, CheckedData, Decodable, Encodable, VarInt};
-#[cfg(rust_v_1_65)]
 use crate::internal_macros::impl_encoding_from_consensus;
 use crate::merkle_tree::MerkleBlock;
 use crate::p2p::address::{AddrV2Message, Address};

@@ -27,7 +27,7 @@ extern crate std;
 
 /// Bitcoin consensus encoding sans-I/O primitives.
 #[cfg(all(feature = "encoding", rust_v_1_65))]
-pub extern crate encoding;
+pub extern crate encoding_dep as encoding;
 
 /// A generic serialization/deserialization framework.
 #[cfg(feature = "serde")]

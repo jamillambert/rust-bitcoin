@@ -16,9 +16,9 @@ use internals::impl_array_newtype;
 use io::{Read, Write};
 
 use crate::consensus::encode::{self, Decodable, Encodable, VarInt};
-#[cfg(rust_v_1_65)]
-use crate::internal_macros::impl_encoding_from_consensus;
-use crate::internal_macros::{impl_bytes_newtype, impl_consensus_encoding};
+use crate::internal_macros::{
+    impl_bytes_newtype, impl_consensus_encoding, impl_encoding_from_consensus,
+};
 use crate::prelude::*;
 use crate::{block, Block, BlockHash, Transaction};
 

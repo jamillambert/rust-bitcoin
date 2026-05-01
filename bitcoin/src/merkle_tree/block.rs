@@ -50,7 +50,6 @@ use crate::blockdata::block::{self, Block, TxMerkleNode};
 use crate::blockdata::transaction::{Transaction, Txid};
 use crate::blockdata::weight::Weight;
 use crate::consensus::encode::{self, Decodable, Encodable, MAX_VEC_SIZE};
-#[cfg(rust_v_1_65)]
 use crate::internal_macros::impl_encoding_from_consensus;
 use crate::prelude::*;
 

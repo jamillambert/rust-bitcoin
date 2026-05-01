@@ -27,9 +27,9 @@ use crate::blockdata::witness::Witness;
 use crate::blockdata::FeeRate;
 use crate::consensus::{encode, Decodable, Encodable};
 use crate::error::{ContainsPrefixError, MissingPrefixError, PrefixedHexError, UnprefixedHexError};
-#[cfg(rust_v_1_65)]
-use crate::internal_macros::impl_encoding_from_consensus;
-use crate::internal_macros::{impl_consensus_encoding, impl_hashencode};
+use crate::internal_macros::{
+    impl_consensus_encoding, impl_encoding_from_consensus, impl_hashencode,
+};
 use crate::prelude::*;
 #[cfg(doc)]
 use crate::sighash::{EcdsaSighashType, TapSighashType};
