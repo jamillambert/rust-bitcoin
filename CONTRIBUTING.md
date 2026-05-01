@@ -401,11 +401,6 @@ See [Errors](#errors) section.
 - `#[track_caller]`: Used on functions that panic on invalid arguments
   (see https://rustc-dev-guide.rust-lang.org/backend/implicit-caller-location.html)
 
-- `#[cfg(rust_v_1_60)]`: Used to guard code that should only be built in if the toolchain is
-  compatible. These configuration conditionals are set at build time in `bitcoin/build.rs`. New
-  version attributes may be added as needed.
-
-
 #### Licensing
 
 We use SPDX license tags, all files should start with

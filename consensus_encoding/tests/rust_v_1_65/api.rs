@@ -188,7 +188,7 @@ fn api_all_non_error_types_have_non_empty_debug() {
     let debug = format!("{:?}", CompactSizeU64Decoder::default());
     assert!(!debug.is_empty());
 
-    let d = || FooDecoder::default();
+    let d = FooDecoder::default;
 
     let debug = format!("{:?}", Decoder2::new(d(), d()));
     assert!(!debug.is_empty());

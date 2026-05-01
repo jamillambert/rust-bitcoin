@@ -593,7 +593,7 @@ fn two_fifty_six_elements_encoded() -> Vec<u8> {
 check_decode_one_byte_at_a_time! {
     TestDecoder::default();
         decode_vec, Test(vec![Inner(0xDEAD_BEEF), Inner(0xCAFE_BABE)]),
-    vec![0x02, 0xEF, 0xBE, 0xAD, 0xDE, 0xBE, 0xBA, 0xFE, 0xCA];
+    [0x02, 0xEF, 0xBE, 0xAD, 0xDE, 0xBE, 0xBA, 0xFE, 0xCA];
         decode_vec_multi_byte_length_prefix, two_fifty_six_elements(), two_fifty_six_elements_encoded();
 }
 

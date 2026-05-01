@@ -12,8 +12,6 @@ pub use safety_boundary::ArrayVec;
 mod safety_boundary {
     use core::mem::MaybeUninit;
 
-    use crate::const_tools::cond_const;
-
     /// A growable contiguous collection backed by array.
     #[derive(Copy)]
     pub struct ArrayVec<T: Copy, const CAP: usize> {
@@ -22,46 +20,30 @@ mod safety_boundary {
     }
 
     impl<T: Copy, const CAP: usize> ArrayVec<T, CAP> {
-        // The bounds are const-unstable until 1.61
-        cond_const! {
-            /// Creates an empty `ArrayVec`.
-            pub const(in rust_v_1_61 = "1.61") fn new() -> Self {
-                Self {
-                    len: 0,
-                    data: [MaybeUninit::uninit(); CAP],
-                }
+        /// Creates an empty `ArrayVec`.
+        pub const fn new() -> Self { Self { len: 0, data: [MaybeUninit::uninit(); CAP] } }
+
+        /// Creates an `ArrayVec` initialized with the contets of `slice`.
+        ///
+        /// # Panics
+        ///
+        /// If the slice is longer than `CAP`.
+        pub const fn from_slice(slice: &[T]) -> Self {
+            assert!(slice.len() <= CAP);
+            let mut data = [MaybeUninit::uninit(); CAP];
+            let mut i = 0;
+            while i < slice.len() {
+                data[i] = MaybeUninit::new(slice[i]);
+                i += 1;
             }
 
-            /// Creates an `ArrayVec` initialized with the contets of `slice`.
-            ///
-            /// # Panics
-            ///
-            /// If the slice is longer than `CAP`.
-            pub const(in rust_v_1_61 = "1.61") fn from_slice(slice: &[T]) -> Self {
-                assert!(slice.len() <= CAP);
-                let mut data = [MaybeUninit::uninit(); CAP];
-                let mut i = 0;
-                // can't use mutable references and operators in const
-                while i < slice.len() {
-                    data[i] = MaybeUninit::new(slice[i]);
-                    i += 1;
-                }
-
-                Self {
-                    len: slice.len(),
-                    data,
-                }
-            }
+            Self { len: slice.len(), data }
         }
 
-        // from_raw_parts is const-unstable until 1.64
-        cond_const! {
-            /// Returns a reference to the underlying data.
-            #[allow(unknown_lints, clippy::incompatible_msrv)]
-            pub const(in rust_v_1_64 = "1.64") fn as_slice(&self) -> &[T] {
-                let ptr = &self.data as *const _ as *const T;
-                unsafe { core::slice::from_raw_parts(ptr, self.len) }
-            }
+        /// Returns a reference to the underlying data.
+        pub const fn as_slice(&self) -> &[T] {
+            let ptr = self.data.as_ptr().cast::<T>();
+            unsafe { core::slice::from_raw_parts(ptr, self.len) }
         }
 
         /// Returns a mutable reference to the underlying data.

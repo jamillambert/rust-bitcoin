@@ -32,6 +32,3 @@ rustdoc-args = ["--cfg", "docsrs"]
 [[example]]
 name = "encoder"
 required-features = ["alloc"]
-
-[lints.rust]
-unexpected_cfgs = { level = "deny", check-cfg = ['cfg(rust_v_1_65)'] }
