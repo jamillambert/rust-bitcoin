@@ -24,14 +24,14 @@ pub struct Hash<T: Tag>([u8; 32], PhantomData<T>);
 
 #[cfg(feature = "schemars")]
 impl<T: Tag> schemars::JsonSchema for Hash<T> {
-    fn schema_name() -> String { "Hash".to_owned() }
+    fn schema_name() -> alloc::string::String { alloc::string::String::from("Hash") }
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        let mut schema: schemars::schema::SchemaObject = <String>::json_schema(gen).into();
-        schema.string = Some(Box::new(schemars::schema::StringValidation {
+        let mut schema: schemars::schema::SchemaObject = <alloc::string::String>::json_schema(gen).into();
+        schema.string = Some(alloc::boxed::Box::new(schemars::schema::StringValidation {
             max_length: Some(32 * 2),
             min_length: Some(32 * 2),
-            pattern: Some("[0-9a-fA-F]+".to_owned()),
+            pattern: Some(alloc::string::String::from("[0-9a-fA-F]+")),
         }));
         schema.into()
     }
@@ -190,14 +190,14 @@ mod tests {
 
     #[cfg(all(feature = "alloc", feature = "schemars"))]
     impl schemars::JsonSchema for TestHashTag {
-        fn schema_name() -> String { "Hash".to_owned() }
+        fn schema_name() -> alloc::string::String { alloc::string::String::from("Hash") }
 
         fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-            let mut schema: schemars::schema::SchemaObject = <String>::json_schema(gen).into();
-            schema.string = Some(Box::new(schemars::schema::StringValidation {
+            let mut schema: schemars::schema::SchemaObject = <alloc::string::String>::json_schema(gen).into();
+            schema.string = Some(alloc::boxed::Box::new(schemars::schema::StringValidation {
                 max_length: Some(64 * 2),
                 min_length: Some(64 * 2),
-                pattern: Some("[0-9a-fA-F]+".to_owned()),
+                pattern: Some(alloc::string::String::from("[0-9a-fA-F]+")),
             }));
             schema.into()
         }
