@@ -88,7 +88,7 @@ impl Decodable for Inventory {
             0 => {
                 sha256d::Hash::consensus_decode(r)?;
                 Inventory::Error
-            },
+            }
             1 => Inventory::Transaction(Decodable::consensus_decode(r)?),
             2 => Inventory::Block(Decodable::consensus_decode(r)?),
             4 => Inventory::CompactBlock(Decodable::consensus_decode(r)?),
