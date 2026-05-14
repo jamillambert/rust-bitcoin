@@ -810,8 +810,10 @@ fn fmt_satoshi_in(
         (true, true, _) | (true, false, fmt::Alignment::Right) => (width - num_width, 0),
         (true, false, fmt::Alignment::Left) => (0, width - num_width),
         // If the required padding is odd it needs to be skewed to the left
-        (true, false, fmt::Alignment::Center) =>
-            ((width - num_width) / 2, (width - num_width + 1) / 2),
+        (true, false, fmt::Alignment::Center) => {
+            let pad = width - num_width;
+            (pad / 2, pad.div_ceil(2))
+        }
     };
 
     if !options.sign_aware_zero_pad {
