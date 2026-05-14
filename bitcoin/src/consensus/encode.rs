@@ -15,6 +15,7 @@
 //! typically big-endian decimals, etc.)
 //!
 
+use core::convert::Infallible;
 use core::{fmt, mem};
 
 use hashes::{sha256, sha256d, Hash};
@@ -65,7 +66,9 @@ pub enum Error {
     UnsupportedSegwitFlag(u8),
 }
 
-internals::impl_from_infallible!(Error);
+impl From<Infallible> for Error {
+    fn from(never: Infallible) -> Self { match never {} }
+}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -526,13 +529,12 @@ impl Decodable for VarInt {
             n => Ok(VarInt::from(n)),
         };
         match varint {
-            Ok(v) => {
+            Ok(v) =>
                 if v.0 > MAX_COMPACT_SIZE as u64 {
                     Err(Error::OversizedVarInt)
                 } else {
                     Ok(v)
-                }
-            }
+                },
             Err(e) => Err(e),
         }
     }
@@ -999,7 +1001,10 @@ mod tests {
     #[test]
     fn deserialize_varint_too_large() {
         // MAX_COMPACT_SIZE (0x02000000) should succeed
-        assert_eq!(test_varint_encode(0xFE, &(0x02000000_u64).to_le_bytes()).unwrap(), VarInt(0x02000000));
+        assert_eq!(
+            test_varint_encode(0xFE, &(0x02000000_u64).to_le_bytes()).unwrap(),
+            VarInt(0x02000000)
+        );
         // MAX_COMPACT_SIZE + 1 should fail with range check enabled
         let mut input = [0u8; 9];
         input[0] = 0xFE;
