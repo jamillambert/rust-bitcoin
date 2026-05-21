@@ -9,12 +9,16 @@
 //! `std::io`'s traits without unnecessary complexity.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+
+// Experimental features we need.
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+
 // Coding conventions.
 #![warn(missing_docs)]
+
 // Exclude lints we don't think are valuable.
 #![allow(clippy::needless_question_mark)] // https://github.com/rust-bitcoin/rust-bitcoin/pull/2134
 #![allow(clippy::manual_range_contains)] // More readable than clippy's format.
-#![allow(clippy::needless_borrows_for_generic_args)] // https://github.com/rust-lang/rust-clippy/issues/12454
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -58,7 +62,7 @@ pub trait Read {
 
     /// Creates an adapter which will read at most `limit` bytes.
     #[inline]
-    fn take(&mut self, limit: u64) -> Take<'_, Self> { Take { reader: self, remaining: limit } }
+    fn take(&mut self, limit: u64) -> Take<Self> { Take { reader: self, remaining: limit } }
 
     /// Attempts to read up to limit bytes from the reader, allocating space in `buf` as needed.
     ///
@@ -216,7 +220,8 @@ impl<T: AsRef<[u8]>> Read for Cursor<T> {
         let start_pos = self.pos.try_into().unwrap_or(inner.len());
         let read = core::cmp::min(inner.len().saturating_sub(start_pos), buf.len());
         buf[..read].copy_from_slice(&inner[start_pos..start_pos + read]);
-        self.pos = self.pos.saturating_add(read.try_into().unwrap_or(u64::MAX /* unreachable */));
+        self.pos =
+            self.pos.saturating_add(read.try_into().unwrap_or(u64::MAX /* unreachable */));
         Ok(read)
     }
 }
@@ -271,7 +276,7 @@ impl Write for alloc::vec::Vec<u8> {
     fn flush(&mut self) -> Result<()> { Ok(()) }
 }
 
-impl Write for &mut [u8] {
+impl<'a> Write for &'a mut [u8] {
     #[inline]
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let cnt = core::cmp::min(self.len(), buf.len());
@@ -324,10 +329,10 @@ pub fn from_std_mut<T>(std_io: &mut T) -> &mut FromStd<T> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[cfg(all(not(feature = "std"), feature = "alloc"))]
     use alloc::{string::ToString, vec};
-
-    use super::*;
 
     #[test]
     fn buf_read_fill_and_consume_slice() {
