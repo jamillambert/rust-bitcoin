@@ -122,7 +122,7 @@ fn calculate_root_batched(mut nodes: Vec<[u8; 32]>) -> Option<[u8; 32]> {
     }
 
     while nodes.len() > 1 {
-        // check consecutive duplicates which would trigger CVE 2012-245
+        // check consecutive duplicates which would trigger CVE-2012-2459
         for pair in nodes.chunks_exact(2) {
             if pair[0] == pair[1] {
                 return None;
