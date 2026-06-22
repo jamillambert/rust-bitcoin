@@ -14,7 +14,7 @@ use hashes::sha256d;
 /// Computed on a transaction that has had the signatures removed.
 ///
 /// This type is needed only for legacy (pre-Segwit or P2SH-wrapped segwit version 0)
-/// applications. This method clears the `script_sig` field of each input, which in Segwit
+/// applications. The computation clears the `script_sig` field of each input, which in Segwit
 /// transactions is already empty, so for Segwit transactions the ntxid will be equal to the
 /// txid, and you should simply use the latter.
 ///
