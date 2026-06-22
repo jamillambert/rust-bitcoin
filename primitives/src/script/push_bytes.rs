@@ -48,12 +48,12 @@ mod primitive {
         impl PushBytes {
             /// Constructs a new `&PushBytes` without checking the length.
             ///
-            /// The caller is responsible for checking that the length is less than the 2^32.
+            /// The caller is responsible for checking that the length is less than 2^32.
             fn from_slice_unchecked(bytes: &_) -> &Self;
 
             /// Constructs a new `&mut PushBytes` without checking the length.
             ///
-            /// The caller is responsible for checking that the length is less than the 2^32.
+            /// The caller is responsible for checking that the length is less than 2^32.
             fn from_mut_slice_unchecked(bytes: &mut _) -> &mut Self;
         }
     }
