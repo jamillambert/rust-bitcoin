@@ -16,7 +16,7 @@ pub struct WitnessCommitment(sha256d::Hash);
 super::impl_debug!(WitnessCommitment);
 
 impl WitnessCommitment {
-    /// Dummy hash used as the previous blockhash of the genesis block.
+    /// The all-zeros hash used as the witness reserved value in the genesis block's coinbase.
     pub const GENESIS_PREVIOUS_BLOCK_HASH: Self = Self::from_byte_array([0; 32]);
 }
 
