@@ -33,7 +33,7 @@ pub use self::error::SequenceDecoderError;
 /// Bitcoin transaction input sequence number.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Sequence(pub u32);
+pub struct Sequence(u32);
 
 impl Sequence {
     /// The maximum allowable sequence number.
@@ -349,7 +349,7 @@ impl<'a> Arbitrary<'a> for Sequence {
                 Self::LOCK_TYPE_MASK
                     | u32::from(relative::NumberOf512Seconds::MAX.to_512_second_intervals()),
             )),
-            _ => Ok(Self(u.arbitrary()?)),
+            _ => Ok(Self::from_consensus(u.arbitrary()?)),
         }
     }
 }
@@ -365,7 +365,7 @@ impl<'a> Arbitrary<'a> for Sequence {
             1 => Ok(Sequence::ZERO),
             2 => Ok(Sequence::MIN_NO_RBF),
             3 => Ok(Sequence::ENABLE_LOCKTIME_AND_RBF),
-            _ => Ok(Sequence(u.arbitrary()?)),
+            _ => Ok(Sequence::from_consensus(u.arbitrary()?)),
         }
     }
 }
@@ -469,9 +469,9 @@ mod tests {
 
     #[test]
     fn sequence_properties() {
-        let seq_max = Sequence(0xFFFF_FFFF);
-        let seq_no_rbf = Sequence(0xFFFF_FFFE);
-        let seq_rbf = Sequence(0xFFFF_FFFD);
+        let seq_max = Sequence::from_consensus(0xFFFF_FFFF);
+        let seq_no_rbf = Sequence::from_consensus(0xFFFF_FFFE);
+        let seq_rbf = Sequence::from_consensus(0xFFFF_FFFD);
 
         assert!(seq_max.is_final());
         assert!(!seq_no_rbf.is_final());
@@ -482,12 +482,12 @@ mod tests {
         assert!(seq_rbf.is_rbf());
         assert!(!seq_no_rbf.is_rbf());
 
-        let seq_relative = Sequence(0x7FFF_FFFF);
+        let seq_relative = Sequence::from_consensus(0x7FFF_FFFF);
         assert!(seq_relative.is_relative_lock_time());
         assert!(!seq_max.is_relative_lock_time());
 
-        let seq_height_locked = Sequence(0x0039_9999);
-        let seq_time_locked = Sequence(0x0040_0000);
+        let seq_height_locked = Sequence::from_consensus(0x0039_9999);
+        let seq_time_locked = Sequence::from_consensus(0x0040_0000);
         assert!(seq_height_locked.is_height_locked());
         assert!(seq_time_locked.is_time_locked());
         assert!(!seq_time_locked.is_height_locked());
@@ -497,7 +497,7 @@ mod tests {
     #[test]
     #[cfg(feature = "alloc")]
     fn sequence_formatting() {
-        let sequence = Sequence(0x7FFF_FFFF);
+        let sequence = Sequence::from_consensus(0x7FFF_FFFF);
         assert_eq!(format!("{:x}", sequence), "7fffffff");
         assert_eq!(format!("{:X}", sequence), "7FFFFFFF");
 
@@ -511,7 +511,7 @@ mod tests {
     fn sequence_display() {
         use alloc::string::ToString;
 
-        let sequence = Sequence(0x7FFF_FFFF);
+        let sequence = Sequence::from_consensus(0x7FFF_FFFF);
         let want: u32 = 0x7FFF_FFFF;
         assert_eq!(format!("{}", sequence), want.to_string());
     }
@@ -519,7 +519,7 @@ mod tests {
     #[test]
     #[cfg(feature = "alloc")]
     fn sequence_unprefixed_hex_roundtrip() {
-        let sequence = Sequence(0x7FFF_FFFF);
+        let sequence = Sequence::from_consensus(0x7FFF_FFFF);
 
         let hex_str = format!("{:x}", sequence);
         assert_eq!(hex_str, "7fffffff");
@@ -531,15 +531,15 @@ mod tests {
     #[test]
     fn sequence_from_height() {
         // Check near the boundaries
-        assert_eq!(Sequence::from_height(0), Sequence(0));
-        assert_eq!(Sequence::from_height(1), Sequence(1));
-        assert_eq!(Sequence::from_height(0x7FFF), Sequence(0x7FFF));
-        assert_eq!(Sequence::from_height(0xFFFF), Sequence(0xFFFF));
+        assert_eq!(Sequence::from_height(0), Sequence::from_consensus(0));
+        assert_eq!(Sequence::from_height(1), Sequence::from_consensus(1));
+        assert_eq!(Sequence::from_height(0x7FFF), Sequence::from_consensus(0x7FFF));
+        assert_eq!(Sequence::from_height(0xFFFF), Sequence::from_consensus(0xFFFF));
 
         // Check steps throughout the whole range
         let step = 512;
         for v in (0..=u16::MAX).step_by(step) {
-            assert_eq!(Sequence::from_height(v), Sequence(v.into()));
+            assert_eq!(Sequence::from_height(v), Sequence::from_consensus(v.into()));
         }
     }
 
