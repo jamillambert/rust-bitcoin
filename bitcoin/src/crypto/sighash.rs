@@ -90,13 +90,14 @@ pub struct SighashCache<T: Borrow<Transaction>> {
 
 /// Common values cached between segwit and taproot inputs.
 #[derive(Debug)]
-struct CommonCache {
-    prevouts: sha256::Hash,
-    sequences: sha256::Hash,
+#[doc(hidden)]
+pub struct CommonCache {
+    pub prevouts: sha256::Hash,
+    pub sequences: sha256::Hash,
 
     /// In theory `outputs` could be an `Option` since `SIGHASH_NONE` and `SIGHASH_SINGLE` do not
     /// need it, but since `SIGHASH_ALL` is by far the most used variant we don't bother.
-    outputs: sha256::Hash,
+    pub outputs: sha256::Hash,
 }
 
 /// Values cached for segwit inputs, equivalent to [`CommonCache`] plus another round of `sha256`.
@@ -109,9 +110,10 @@ struct SegwitCache {
 
 /// Values cached for taproot inputs.
 #[derive(Debug)]
-struct TaprootCache {
-    amounts: sha256::Hash,
-    script_pubkeys: sha256::Hash,
+#[doc(hidden)]
+pub struct TaprootCache {
+    pub amounts: sha256::Hash,
+    pub script_pubkeys: sha256::Hash,
 }
 
 /// Contains outputs of previous transactions. In the case [`TapSighashType`] variant is
@@ -1042,7 +1044,8 @@ impl<R: Borrow<Transaction>> SighashCache<R> {
     }
 
     #[inline]
-    fn common_cache(&mut self) -> &CommonCache {
+    #[doc(hidden)]
+    pub fn common_cache(&mut self) -> &CommonCache {
         Self::common_cache_minimal_borrow(&mut self.common_cache, self.tx.borrow())
     }
 
@@ -1084,7 +1087,8 @@ impl<R: Borrow<Transaction>> SighashCache<R> {
         })
     }
 
-    fn taproot_cache<T: Borrow<TxOut>>(&mut self, prevouts: &[T]) -> &TaprootCache {
+    #[doc(hidden)]
+    pub fn taproot_cache<T: Borrow<TxOut>>(&mut self, prevouts: &[T]) -> &TaprootCache {
         self.taproot_cache.get_or_insert_with(|| {
             let mut enc_amounts = sha256::Hash::engine();
             let mut enc_script_pubkeys = sha256::Hash::engine();
@@ -1528,48 +1532,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "serde")]
-    fn legacy_sighash() {
-        use serde_json::Value;
-
-        use crate::sighash::SighashCache;
-
-        fn run_test_sighash(
-            tx: &str,
-            script: &str,
-            input_index: usize,
-            hash_type: i64,
-            expected_result: &str,
-        ) {
-            let tx: Transaction = deserialize(&Vec::from_hex(tx).unwrap()[..]).unwrap();
-            let script = ScriptBuf::from(Vec::from_hex(script).unwrap());
-            let mut raw_expected = Vec::from_hex(expected_result).unwrap();
-            raw_expected.reverse();
-            let want = LegacySighash::from_slice(&raw_expected[..]).unwrap();
-
-            let cache = SighashCache::new(&tx);
-            let got = cache.legacy_signature_hash(input_index, &script, hash_type as u32).unwrap();
-
-            assert_eq!(got, want);
-        }
-
-        // These test vectors were stolen from libbtc, which is Copyright 2014 Jonas Schnelli MIT
-        // They were transformed by replacing {...} with run_test_sighash(...), then the ones containing
-        // OP_CODESEPARATOR in their pubkeys were removed
-        let data = include_str!("../../tests/data/legacy_sighash.json");
-
-        let testdata = serde_json::from_str::<Value>(data).unwrap().as_array().unwrap().clone();
-        for t in testdata.iter().skip(1) {
-            let tx = t.get(0).unwrap().as_str().unwrap();
-            let script = t.get(1).unwrap().as_str().unwrap_or("");
-            let input_index = t.get(2).unwrap().as_u64().unwrap();
-            let hash_type = t.get(3).unwrap().as_i64().unwrap();
-            let expected_sighash = t.get(4).unwrap().as_str().unwrap();
-            run_test_sighash(tx, script, input_index as usize, hash_type, expected_sighash);
-        }
-    }
-
-    #[test]
     fn test_tap_sighash_hash() {
         let bytes = hex!("00011b96877db45ffa23b307e9f0ac87b80ef9a80b4c5f0db3fbe734422453e83cc5576f3d542c5d4898fb2b696c15d43332534a7c1d1255fda38993545882df92c3e353ff6d36fbfadc4d168452afd8467f02fe53d71714fcea5dfe2ea759bd00185c4cb02bc76d42620393ca358a1a713f4997f9fc222911890afb3fe56c6a19b202df7bffdcfad08003821294279043746631b00e2dc5e52a111e213bbfe6ef09a19428d418dab0d50000000000");
         let expected = hex!("04e808aad07a40b3767a1442fead79af6ef7e7c9316d82dec409bb31e77699b0");
@@ -1822,9 +1784,9 @@ mod tests {
 
         fn sighash_deser_numeric<'de, D>(deserializer: D) -> Result<TapSighashType, D::Error>
         where
-            D: actual_serde::Deserializer<'de>,
+            D: serde::Deserializer<'de>,
         {
-            use actual_serde::de::{Deserialize, Error, Unexpected};
+            use serde::de::{Deserialize, Error, Unexpected};
 
             let raw = u8::deserialize(deserializer)?;
             TapSighashType::from_consensus_u8(raw).map_err(|_| {
@@ -1841,7 +1803,7 @@ mod tests {
         use crate::taproot::{TapNodeHash, TapTweakHash};
 
         #[derive(serde::Deserialize)]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct UtxoSpent {
             #[serde(rename = "scriptPubKey")]
             script_pubkey: ScriptBuf,
@@ -1851,7 +1813,7 @@ mod tests {
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct KpsGiven {
             #[serde(with = "con_serde::With::<con_serde::Hex>")]
             raw_unsigned_tx: Transaction,
@@ -1860,7 +1822,7 @@ mod tests {
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct KpsIntermediary {
             hash_prevouts: sha256::Hash,
             hash_outputs: sha256::Hash,
@@ -1871,7 +1833,7 @@ mod tests {
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct KpsInputSpendingGiven {
             txin_index: usize,
             internal_privkey: SecretKey,
@@ -1882,7 +1844,7 @@ mod tests {
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct KpsInputSpendingIntermediary {
             internal_pubkey: XOnlyPublicKey,
             tweak: TapTweakHash,
@@ -1894,14 +1856,14 @@ mod tests {
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct KpsInputSpendingExpected {
             witness: Vec<String>,
         }
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct KpsInputSpending {
             given: KpsInputSpendingGiven,
             intermediary: KpsInputSpendingIntermediary,
@@ -1911,7 +1873,7 @@ mod tests {
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct KeyPathSpending {
             given: KpsGiven,
             intermediary: KpsIntermediary,
@@ -1920,7 +1882,7 @@ mod tests {
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct TestData {
             version: u64,
             key_path_spending: Vec<KeyPathSpending>,
