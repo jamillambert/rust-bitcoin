@@ -59,7 +59,7 @@ impl From<Wtxid> for WitnessMerkleNode {
 /// * [CBlockHeader definition](https://github.com/bitcoin/bitcoin/blob/345457b542b6a980ccfbc868af0970a6f91d1b82/src/primitives/block.h#L20)
 #[derive(Copy, PartialEq, Eq, Clone, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Header {
     /// Block version, now repurposed for soft fork signalling.
     pub version: Version,
@@ -150,7 +150,7 @@ impl fmt::Debug for Header {
 /// * [BIP34 - Block v2, Height in Coinbase](https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki)
 #[derive(Copy, PartialEq, Eq, Clone, Debug, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Version(i32);
 
 impl Version {
@@ -169,7 +169,8 @@ impl Version {
     /// 32bit value starting with `001` to use version bits.
     ///
     /// The value has the top three bits `001` which enables the use of version bits to signal for soft forks.
-    const USE_VERSION_BITS: u32 = 0x2000_0000;
+    #[doc(hidden)]
+    pub const USE_VERSION_BITS: u32 = 0x2000_0000;
 
     /// Creates a [`Version`] from a signed 32 bit integer value.
     ///
@@ -231,7 +232,7 @@ impl Decodable for Version {
 /// * [CBlock definition](https://github.com/bitcoin/bitcoin/blob/345457b542b6a980ccfbc868af0970a6f91d1b82/src/primitives/block.h#L62)
 #[derive(PartialEq, Eq, Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Block {
     /// The block header
     pub header: Header,
@@ -336,7 +337,8 @@ impl Block {
     ///
     /// > Base size is the block size in bytes with the original transaction serialization without
     /// > any witness-related data, as seen by a non-upgraded node.
-    fn base_size(&self) -> usize {
+    #[doc(hidden)]
+    pub fn base_size(&self) -> usize {
         let mut size = Header::SIZE;
 
         size += VarInt::from(self.txdata.len()).size();
@@ -603,44 +605,6 @@ mod tests {
         assert!(real_decode.check_witness_commitment());
 
         assert_eq!(serialize(&real_decode), some_block);
-    }
-
-    // Check testnet block 000000000000045e0b1660b6445b5e5c5ab63c9a4f956be7e1e69be04fa4497b
-    #[test]
-    fn segwit_block_test() {
-        let params = Params::new(Network::Testnet);
-        let segwit_block = include_bytes!("../../tests/data/testnet_block_000000000000045e0b1660b6445b5e5c5ab63c9a4f956be7e1e69be04fa4497b.raw").to_vec();
-
-        let decode: Result<Block, _> = deserialize(&segwit_block);
-
-        let prevhash = hex!("2aa2f2ca794ccbd40c16e2f3333f6b8b683f9e7179b2c4d74906000000000000");
-        let merkle = hex!("10bc26e70a2f672ad420a6153dd0c28b40a6002c55531bfc99bf8994a8e8f67e");
-        let work = Work::from(0x257c3becdacc64_u64);
-
-        assert!(decode.is_ok());
-        let real_decode = decode.unwrap();
-        assert_eq!(real_decode.header.version, Version(Version::USE_VERSION_BITS as i32)); // VERSIONBITS but no bits set
-        assert_eq!(serialize(&real_decode.header.prev_blockhash), prevhash);
-        assert_eq!(serialize(&real_decode.header.merkle_root), merkle);
-        assert_eq!(real_decode.header.merkle_root, real_decode.compute_merkle_root().unwrap());
-        assert_eq!(real_decode.header.time, 1472004949);
-        assert_eq!(real_decode.header.bits, CompactTarget::from_consensus(0x1a06d450));
-        assert_eq!(real_decode.header.nonce, 1879759182);
-        assert_eq!(real_decode.header.work(), work);
-        assert_eq!(
-            real_decode.header.validate_pow(real_decode.header.target()).unwrap(),
-            real_decode.block_hash()
-        );
-        assert_eq!(real_decode.header.difficulty(&params), 2456598);
-        assert_eq!(real_decode.header.difficulty_float(), 2456598.4399242126);
-
-        assert_eq!(real_decode.total_size(), segwit_block.len());
-        assert_eq!(real_decode.base_size(), 4283);
-        assert_eq!(real_decode.weight(), Weight::from_wu(17168));
-
-        assert!(real_decode.check_witness_commitment());
-
-        assert_eq!(serialize(&real_decode), segwit_block);
     }
 
     #[test]

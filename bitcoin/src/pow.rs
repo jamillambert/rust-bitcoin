@@ -92,7 +92,7 @@ macro_rules! do_impl {
 /// Work is a measure of how difficult it is to find a hash below a given [`Target`].
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Work(U256);
 
 impl Work {
@@ -128,7 +128,7 @@ impl Sub for Work {
 /// ref: <https://en.bitcoin.it/wiki/Target>
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Target(U256);
 
 impl Target {
@@ -335,7 +335,7 @@ do_impl!(Target);
 /// is exactly this format.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct CompactTarget(u32);
 
 impl CompactTarget {
@@ -1091,17 +1091,20 @@ impl kani::Arbitrary for U256 {
     }
 }
 
+// These impls allow creating Target/Work from integers in tests.
+#[doc(hidden)]
+impl<T: Into<u128>> From<T> for Target {
+    fn from(x: T) -> Self { Self(U256::from(x)) }
+}
+
+#[doc(hidden)]
+impl<T: Into<u128>> From<T> for Work {
+    fn from(x: T) -> Self { Self(U256::from(x)) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    impl<T: Into<u128>> From<T> for Target {
-        fn from(x: T) -> Self { Self(U256::from(x)) }
-    }
-
-    impl<T: Into<u128>> From<T> for Work {
-        fn from(x: T) -> Self { Self(U256::from(x)) }
-    }
 
     impl U256 {
         fn bit_at(&self, index: usize) -> bool {
