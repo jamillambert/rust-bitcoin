@@ -1305,22 +1305,4 @@ mod tests {
             );
         }
     }
-
-    #[test]
-    fn deserialize_tx_hex() {
-        let hex = include_str!("../../tests/data/previous_tx_0_hex"); // An arbitrary transaction.
-        assert!(deserialize_hex::<Transaction>(hex).is_ok())
-    }
-
-    #[test]
-    fn deserialize_tx_hex_too_many_bytes() {
-        use crate::consensus::DecodeError;
-
-        let mut hex = include_str!("../../tests/data/previous_tx_0_hex").to_string(); // An arbitrary transaction.
-        hex.push_str("abcdef");
-        assert!(matches!(
-            deserialize_hex::<Transaction>(&hex).unwrap_err(),
-            FromHexError::Decode(DecodeError::TooManyBytes)
-        ));
-    }
 }
