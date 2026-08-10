@@ -1158,16 +1158,20 @@ impl kani::Arbitrary for U256 {
 }
 
 #[cfg(test)]
+#[doc(hidden)]
+impl<T: Into<u128>> From<T> for Target {
+    fn from(x: T) -> Self { Self(U256::from(x)) }
+}
+
+#[cfg(test)]
+#[doc(hidden)]
+impl<T: Into<u128>> From<T> for Work {
+    fn from(x: T) -> Self { Self(U256::from(x)) }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
-
-    impl<T: Into<u128>> From<T> for Target {
-        fn from(x: T) -> Self { Self(U256::from(x)) }
-    }
-
-    impl<T: Into<u128>> From<T> for Work {
-        fn from(x: T) -> Self { Self(U256::from(x)) }
-    }
 
     impl U256 {
         fn bit_at(&self, index: usize) -> bool {
