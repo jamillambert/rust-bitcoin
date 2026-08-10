@@ -69,7 +69,7 @@ impl From<Network> for NetworkKind {
 // https://github.com/rust-bitcoin/rust-bitcoin/issues/2225
 #[derive(Copy, PartialEq, Eq, PartialOrd, Ord, Clone, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum Network {
     /// Mainnet Bitcoin.
@@ -445,7 +445,7 @@ mod tests {
     #[test]
     fn serde_as_core_arg() {
         #[derive(Serialize, Deserialize, PartialEq, Debug)]
-        #[serde(crate = "actual_serde")]
+        #[serde(crate = "serde")]
         struct T {
             #[serde(with = "crate::network::as_core_arg")]
             pub network: Network,

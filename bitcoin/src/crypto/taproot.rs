@@ -20,7 +20,7 @@ use crate::taproot::serialized_signature::{self, SerializedSignature};
 /// A BIP340-341 serialized taproot signature with the corresponding hash type.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Signature {
     /// The underlying schnorr signature.
     pub signature: secp256k1::schnorr::Signature,

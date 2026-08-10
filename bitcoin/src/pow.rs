@@ -96,7 +96,7 @@ macro_rules! do_impl {
 /// Work is a measure of how difficult it is to find a hash below a given [`Target`].
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Work(U256);
 
 impl Work {
@@ -132,7 +132,7 @@ impl Sub for Work {
 /// ref: <https://en.bitcoin.it/wiki/Target>
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Target(U256);
 
 impl Target {
@@ -339,7 +339,7 @@ do_impl!(Target);
 /// is exactly this format.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct CompactTarget(u32);
 
 impl CompactTarget {
