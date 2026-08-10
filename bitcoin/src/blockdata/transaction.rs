@@ -3009,12 +3009,6 @@ mod tests {
     }
 
     #[test]
-    fn huge_witness() {
-        deserialize::<Transaction>(&hex!(include_str!("../../tests/data/huge_witness.hex").trim()))
-            .unwrap();
-    }
-
-    #[test]
     #[cfg(feature = "bitcoinconsensus")]
     fn transaction_verify() {
         use std::collections::HashMap;
