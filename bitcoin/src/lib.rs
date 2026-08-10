@@ -84,7 +84,8 @@ pub extern crate secp256k1;
 
 #[cfg(feature = "serde")]
 #[macro_use]
-extern crate actual_serde as serde;
+#[doc(hidden)]
+pub extern crate serde;
 
 mod array_vec;
 mod const_tools;

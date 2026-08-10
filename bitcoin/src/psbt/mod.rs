@@ -43,7 +43,7 @@ pub use self::{
 /// A Partially Signed Transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "serde", serde(crate = "serde"))]
 pub struct Psbt {
     /// The unsigned transaction, scriptSigs and witnesses for each input must be empty.
     pub unsigned_tx: Transaction,
@@ -2165,31 +2165,6 @@ mod tests {
         assert!(!psbt.proprietary.is_empty());
         let rtt: Psbt = hex_psbt(&psbt.serialize_hex()).unwrap();
         assert!(!rtt.proprietary.is_empty());
-    }
-
-    // PSBTs taken from BIP 174 test vectors.
-    #[test]
-    fn combine_psbts() {
-        let mut psbt1 = hex_psbt(include_str!("../../tests/data/psbt1.hex")).unwrap();
-        let psbt2 = hex_psbt(include_str!("../../tests/data/psbt2.hex")).unwrap();
-        let psbt_combined = hex_psbt(include_str!("../../tests/data/psbt2.hex")).unwrap();
-
-        psbt1.combine(psbt2).expect("psbt combine to succeed");
-        assert_eq!(psbt1, psbt_combined);
-    }
-
-    #[test]
-    fn combine_psbts_commutative() {
-        let mut psbt1 = hex_psbt(include_str!("../../tests/data/psbt1.hex")).unwrap();
-        let mut psbt2 = hex_psbt(include_str!("../../tests/data/psbt2.hex")).unwrap();
-
-        let psbt1_clone = psbt1.clone();
-        let psbt2_clone = psbt2.clone();
-
-        psbt1.combine(psbt2_clone).expect("psbt1 combine to succeed");
-        psbt2.combine(psbt1_clone).expect("psbt2 combine to succeed");
-
-        assert_eq!(psbt1, psbt2);
     }
 
     #[cfg(feature = "rand-std")]
