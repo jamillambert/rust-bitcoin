@@ -233,6 +233,25 @@ mod tests {
     }
 
     #[test]
+    fn max_okm() {
+        let salt = hex::decode_to_vec("000102030405060708090a0b0c").unwrap();
+        let ikm = hex::decode_to_vec("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b").unwrap();
+        let info = hex::decode_to_vec("f0f1f2f3f4f5f6f7f8f9").unwrap();
+
+        let hkdf = Hkdf::<sha256::HashEngine>::new(&salt, &ikm);
+        // The RFC-5869 maximum output length of `255 * hash length` must not panic.
+        let mut okm = [0u8; 255 * 32];
+        hkdf.expand(&info, &mut okm).unwrap();
+
+        // HKDF output is a stable prefix stream, so the first 42 bytes match the
+        // RFC-5869 test case 1 vector.
+        assert_eq!(
+            okm[..42].to_lower_hex_string(),
+            "3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865"
+        );
+    }
+
+    #[test]
     fn short_okm() {
         let salt = hex::decode_to_vec("000102030405060708090a0b0c").unwrap();
         let ikm = hex::decode_to_vec("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b").unwrap();
