@@ -738,4 +738,18 @@ mod tests {
             assert!(e.source().is_some());
         }
     }
+
+    #[test]
+    #[cfg(feature = "alloc")]
+    fn denomination_error_display_escapes_control_characters() {
+        let e = Denomination::from_str("BTC\nFORGED: privileged action succeeded").unwrap_err();
+        assert!(!e.to_string().chars().any(char::is_control));
+    }
+
+    #[test]
+    #[cfg(feature = "alloc")]
+    fn invalid_character_error_display_escapes_control_characters() {
+        let e = Amount::from_str_in("1\n2", Denomination::Bitcoin).unwrap_err();
+        assert!(!e.to_string().chars().any(char::is_control));
+    }
 }
