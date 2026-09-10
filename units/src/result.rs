@@ -248,7 +248,8 @@ crate::internal_macros::impl_op_for_references! {
         fn add(self, rhs: Self) -> Self::Output {
             match (self, rhs) {
                 (R::Valid(lhs), R::Valid(rhs)) => lhs + rhs,
-                (_, _) => R::Error(NumOpError::while_doing(MathErrorKind::Overflow { op: MathOp::Add, is_negative: false })),
+                (R::Error(e), _) => R::Error(e),
+                (_, R::Error(e)) => R::Error(e),
             }
         }
     }
@@ -271,7 +272,8 @@ crate::internal_macros::impl_op_for_references! {
         fn sub(self, rhs: Self) -> Self::Output {
             match (self, rhs) {
                 (R::Valid(lhs), R::Valid(rhs)) => lhs - rhs,
-                (_, _) => R::Error(NumOpError::while_doing(MathErrorKind::Overflow { op: MathOp::Sub, is_negative: true })),
+                (R::Error(e), _) => R::Error(e),
+                (_, R::Error(e)) => R::Error(e),
             }
         }
     }
