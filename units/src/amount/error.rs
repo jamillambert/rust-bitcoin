@@ -334,7 +334,8 @@ impl fmt::Display for InvalidCharacterError {
             c => write!(
                 f,
                 "the character '{}' at position {} is not a valid digit",
-                c, self.position
+                c.escape_debug(),
+                self.position
             ),
         }
     }
